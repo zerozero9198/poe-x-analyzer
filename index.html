@@ -7,9 +7,12 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
-.header { background: #1a1a2e; color: white; padding: 24px 32px; }
-.header h1 { font-size: 22px; font-weight: 600; }
-.header p { font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 4px; }
+.header { background: #1a1a2e; color: white; padding: 24px 32px; display: flex; justify-content: space-between; align-items: center; }
+.header-left h1 { font-size: 22px; font-weight: 600; }
+.header-left p { font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 4px; }
+.lang-toggle { display: flex; gap: 0; border: 0.5px solid rgba(255,255,255,0.3); border-radius: 8px; overflow: hidden; }
+.lang-btn { padding: 7px 16px; font-size: 12px; cursor: pointer; color: rgba(255,255,255,0.6); background: transparent; border: none; transition: all 0.15s; }
+.lang-btn.active { background: rgba(255,255,255,0.15); color: white; font-weight: 500; }
 .context-banner { background: white; border-left: 3px solid #378ADD; border-radius: 0 10px 10px 0; padding: 14px 18px; margin: 20px 0; font-size: 13px; color: #444; line-height: 1.7; }
 .context-banner strong { color: #1a1a2e; }
 .container { max-width: 920px; margin: 0 auto; padding: 24px 20px; }
@@ -20,7 +23,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-s
 .upload-btn { display: inline-block; margin-top: 16px; padding: 10px 24px; background: #1a1a2e; color: white; border-radius: 8px; font-size: 13px; cursor: pointer; }
 .upload-btn-sm { display: inline-block; padding: 8px 18px; background: transparent; color: #1a1a2e; border: 0.5px solid #ccc; border-radius: 8px; font-size: 12px; cursor: pointer; margin-bottom: 20px; }
 .tabs { display: flex; border-bottom: 0.5px solid #e5e7eb; margin-bottom: 24px; }
-.tab { padding: 10px 20px; font-size: 13px; cursor: pointer; color: #888; border-bottom: 2px solid transparent; }
+.tab { padding: 10px 20px; font-size: 13px; cursor: pointer; color: #888; border-bottom: 2px solid transparent; white-space: nowrap; }
 .tab.active { color: #1a1a2e; border-bottom-color: #1a1a2e; font-weight: 500; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
@@ -66,111 +69,237 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-s
 .snum { width: 24px; height: 24px; background: #1a1a2e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
 .error-box { background: #fff5f5; border: 0.5px solid #F09595; border-radius: 10px; padding: 16px 20px; font-size: 13px; color: #A32D2D; line-height: 1.7; margin-bottom: 16px; }
 .footer { text-align: center; padding: 32px; font-size: 12px; color: #bbb; }
-@media(max-width:640px){ .metrics{grid-template-columns:repeat(2,1fr);} .mrow{grid-template-columns:1fr;} .mm,.mn{border-right:none;border-bottom:0.5px solid #e5e7eb;} .pgrid{grid-template-columns:1fr;} }
+@media(max-width:640px){ .metrics{grid-template-columns:repeat(2,1fr);} .mrow{grid-template-columns:1fr;} .mm,.mn{border-right:none;border-bottom:0.5px solid #e5e7eb;} .pgrid{grid-template-columns:1fr;} .tabs{overflow-x:auto;} }
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>PoE X Analyzer</h1>
-  <p>Proof of Energy — X 계정 에너지 흐름 분석</p>
+  <div class="header-left">
+    <h1>PoE X Analyzer</h1>
+    <p class="t" data-ko="Proof of Energy — X 계정 에너지 흐름 분석" data-en="Proof of Energy — X Account Energy Flow Analysis"></p>
+  </div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('ko')">한국어</button>
+    <button class="lang-btn" onclick="setLang('en')">English</button>
+  </div>
 </div>
+
 <div class="container">
   <div class="context-banner">
-    <strong>X 알고리즘은 플랫폼의 방향을 최적화합니다.</strong> 이 분석은 당신 콘텐츠의 실제 에너지 흐름을 보여줍니다.<br>
-    둘은 다를 수 있습니다. 이 도구는 답을 주지 않습니다. <strong>현재 당신의 위치를 보여줄 뿐입니다.</strong>
+    <span class="t"
+      data-ko="<strong>X 알고리즘은 플랫폼의 방향을 최적화합니다.</strong> 이 분석은 당신 콘텐츠의 실제 에너지 흐름을 보여줍니다.<br>둘은 다를 수 있습니다. 이 도구는 답을 주지 않습니다. <strong>현재 당신의 위치를 보여줄 뿐입니다.</strong>"
+      data-en="<strong>X's algorithm optimizes for the platform's goals.</strong> This analysis shows the actual energy flow of your content.<br>The two may point in different directions. This tool does not give answers. <strong>It only shows where you currently stand.</strong>">
+    </span>
   </div>
+
   <div class="upload-zone" id="uploadZone">
-    <h3 style="font-size:15px;color:#444;margin-bottom:8px;">X 분석 데이터를 업로드하세요</h3>
-    <p style="font-size:13px;color:#999;">X 프리미엄 → 분석 → 내보내기 <strong>account_overview</strong> CSV 파일</p>
-    <label class="upload-btn">파일 선택<input type="file" id="fileInput" accept=".csv"></label>
-    <p style="margin-top:12px;font-size:12px;color:#ccc;">또는 파일을 여기로 드래그하세요</p>
+    <h3 class="t" style="font-size:15px;color:#444;margin-bottom:8px;"
+      data-ko="X 분석 데이터를 업로드하세요"
+      data-en="Upload your X Analytics data"></h3>
+    <p class="t" style="font-size:13px;color:#999;"
+      data-ko="X 프리미엄 → 분석 → 내보내기 account_overview CSV 파일"
+      data-en="X Premium → Analytics → Export → account_overview CSV file"></p>
+    <label class="upload-btn">
+      <span class="t" data-ko="파일 선택" data-en="Choose file"></span>
+      <input type="file" id="fileInput" accept=".csv">
+    </label>
+    <p class="t" style="margin-top:12px;font-size:12px;color:#ccc;"
+      data-ko="또는 파일을 여기로 드래그하세요"
+      data-en="Or drag and drop your file here"></p>
   </div>
+
   <div id="results" style="display:none;">
-    <label class="upload-btn-sm">다른 파일 분석<input type="file" id="fileInput2" accept=".csv" style="display:none;"></label>
+    <label class="upload-btn-sm">
+      <span class="t" data-ko="다른 파일 분석" data-en="Analyze another file"></span>
+      <input type="file" id="fileInput2" accept=".csv" style="display:none;">
+    </label>
+
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('analysis')">분석 결과</div>
-      <div class="tab" onclick="switchTab('guide')">PoE 해석 가이드</div>
-      <div class="tab" onclick="switchTab('update')">데이터 업데이트 방법</div>
+      <div class="tab active" onclick="switchTab('analysis')"><span class="t" data-ko="분석 결과" data-en="Analysis"></span></div>
+      <div class="tab" onclick="switchTab('guide')"><span class="t" data-ko="PoE 해석 가이드" data-en="PoE Guide"></span></div>
+      <div class="tab" onclick="switchTab('update')"><span class="t" data-ko="데이터 업데이트 방법" data-en="How to Update"></span></div>
     </div>
+
+    <!-- 분석 결과 탭 -->
     <div class="tab-content active" id="tab-analysis">
       <div id="error-area"></div>
       <div class="metrics">
-        <div class="metric"><div class="metric-label">총 노출 에너지</div><div class="metric-value" id="m-total">—</div><div class="metric-sub">전체 기간 누적</div></div>
-        <div class="metric"><div class="metric-label">일평균 노출</div><div class="metric-value" id="m-avg">—</div><div class="metric-sub">기준선</div></div>
-        <div class="metric"><div class="metric-label">에너지 전환율</div><div class="metric-value" id="m-conv">—</div><div class="metric-sub">참여 / 노출</div></div>
-        <div class="metric"><div class="metric-label">고에너지 급등일</div><div class="metric-value" id="m-spikes">—</div><div class="metric-sub">평균 3배 이상</div></div>
+        <div class="metric">
+          <div class="metric-label t" data-ko="총 노출 에너지" data-en="Total Impressions"></div>
+          <div class="metric-value" id="m-total">—</div>
+          <div class="metric-sub t" data-ko="전체 기간 누적" data-en="Cumulative total"></div>
+        </div>
+        <div class="metric">
+          <div class="metric-label t" data-ko="일평균 노출" data-en="Daily Avg. Impressions"></div>
+          <div class="metric-value" id="m-avg">—</div>
+          <div class="metric-sub t" data-ko="기준선" data-en="Baseline"></div>
+        </div>
+        <div class="metric">
+          <div class="metric-label t" data-ko="에너지 전환율" data-en="Energy Conversion Rate"></div>
+          <div class="metric-value" id="m-conv">—</div>
+          <div class="metric-sub t" data-ko="참여 / 노출" data-en="Engagements / Impressions"></div>
+        </div>
+        <div class="metric">
+          <div class="metric-label t" data-ko="고에너지 급등일" data-en="High-Energy Spike Days"></div>
+          <div class="metric-value" id="m-spikes">—</div>
+          <div class="metric-sub t" data-ko="평균 3배 이상" data-en="3× above average"></div>
+        </div>
       </div>
+
       <div class="card">
-        <div class="card-title">일별 에너지 흐름</div>
-        <div class="legend"><span><span class="dot" style="background:#1D9E75"></span>고에너지 급등</span><span><span class="dot" style="background:#378ADD"></span>일반 에너지</span></div>
+        <div class="card-title t" data-ko="일별 에너지 흐름" data-en="Daily Energy Flow"></div>
+        <div class="legend">
+          <span><span class="dot" style="background:#1D9E75"></span><span class="t" data-ko="고에너지 급등" data-en="High-energy spike"></span></span>
+          <span><span class="dot" style="background:#378ADD"></span><span class="t" data-ko="일반 에너지" data-en="Normal energy"></span></span>
+        </div>
         <div class="chart-wrap" style="height:220px"><canvas id="mainChart"></canvas></div>
         <div class="insight" id="insight-main"></div>
       </div>
+
       <div class="card">
-        <div class="card-title">에너지 전환 효율 — PoE 핵심 지표</div>
-        <p style="font-size:12px;color:#aaa;margin-bottom:12px;">노출 대비 실제 참여 비율. 높을수록 에너지가 자발적으로 모이는 콘텐츠.</p>
+        <div class="card-title t" data-ko="에너지 전환 효율 — PoE 핵심 지표" data-en="Energy Conversion Efficiency — Core PoE Metric"></div>
+        <p class="t" style="font-size:12px;color:#aaa;margin-bottom:12px;"
+          data-ko="노출 대비 실제 참여 비율. 높을수록 에너지가 자발적으로 모이는 콘텐츠."
+          data-en="Engagement rate relative to impressions. Higher = content that naturally attracts energy."></p>
         <div class="chart-wrap" style="height:200px"><canvas id="effChart"></canvas></div>
         <div class="insight amber" id="insight-eff"></div>
       </div>
+
       <div class="card">
-        <div class="card-title">고에너지 급등일 상세</div>
-        <p style="font-size:12px;color:#aaa;margin-bottom:14px;"><span style="color:#1D9E75;font-weight:500">초록</span> = 전환율 평균 이상 &nbsp;|&nbsp; <span style="color:#378ADD;font-weight:500">파랑</span> = 전환율 평균 이하</p>
+        <div class="card-title t" data-ko="고에너지 급등일 상세" data-en="High-Energy Spike Days Detail"></div>
+        <p style="font-size:12px;color:#aaa;margin-bottom:14px;">
+          <span style="color:#1D9E75;font-weight:500" class="t" data-ko="초록" data-en="Green"></span>
+          <span class="t" data-ko=" = 전환율 평균 이상 &nbsp;|&nbsp; " data-en=" = above avg. conversion &nbsp;|&nbsp; "></span>
+          <span style="color:#378ADD;font-weight:500" class="t" data-ko="파랑" data-en="Blue"></span>
+          <span class="t" data-ko=" = 전환율 평균 이하" data-en=" = below avg. conversion"></span>
+        </p>
         <div id="spikeList"></div>
         <div class="insight" id="insight-spike"></div>
       </div>
-      <div class="dark-card"><div class="card-title">PoE 종합 해석</div><p id="poe-summary"></p></div>
+
+      <div class="dark-card">
+        <div class="card-title t" data-ko="PoE 종합 해석" data-en="PoE Summary"></div>
+        <p id="poe-summary"></p>
+      </div>
     </div>
+
+    <!-- 가이드 탭 -->
     <div class="tab-content" id="tab-guide">
       <div style="margin-bottom:28px;">
-        <div class="gst">각 지표가 의미하는 것</div>
-        <div class="mrow"><div class="mn">노출수<div class="tag" style="background:#e8f4ff;color:#185FA5">에너지 도달</div></div><div class="mm">내 콘텐츠가 타임라인에 뜬 횟수. X 알고리즘이 배포한 양.</div><div class="ma">알고리즘이 준 에너지로, 내가 직접 만든 것이 아닐 수 있습니다. 단독 지표보다는 전환율과 함께 해석하는 것이 유용합니다.</div></div>
-        <div class="mrow"><div class="mn">참여수<div class="tag" style="background:#f0fdf4;color:#0F6E56">에너지 투입</div></div><div class="mm">좋아요+리포스트+답글+북마크 합계.</div><div class="ma">사람들이 자기 시간과 행동을 자발적으로 투입한 횟수. PoE 관점에서 핵심 신호로 볼 수 있습니다.</div></div>
-        <div class="mrow"><div class="mn">에너지 전환율<div class="tag" style="background:#fff8e8;color:#854F0B">참여/노출</div></div><div class="mm">노출 대비 참여 비율. X가 기본으로 보여주지 않는 지표.</div><div class="ma">콘텐츠의 실질 에너지 집중 경향을 나타냅니다. 3% 이상이면 비교적 강한 반응으로 볼 수 있습니다.</div></div>
-        <div class="mrow"><div class="mn">북마크<div class="tag" style="background:#fdf4ff;color:#993556">침묵의 에너지</div></div><div class="mm">저장한 수. 팔로워에게 보이지 않는 행동.</div><div class="ma">공개적으로 반응하지 않았지만 가치를 인정한 신호일 가능성이 높습니다. 북마크가 많은 날의 콘텐츠를 주목해볼 만합니다.</div></div>
-        <div class="mrow"><div class="mn">새로운 팔로우<div class="tag" style="background:#f0fdf4;color:#0F6E56">에너지 결집</div></div><div class="mm">그날 팔로우한 사람 수.</div><div class="ma">콘텐츠에 지속적 관심을 보인 사람. 팔로우가 많았던 날의 콘텐츠가 에너지 집중 측면에서 의미 있을 수 있습니다.</div></div>
+        <div class="gst t" data-ko="각 지표가 의미하는 것" data-en="What each metric means"></div>
+        <div class="mrow">
+          <div class="mn"><span class="t" data-ko="노출수" data-en="Impressions"></span><div class="tag" style="background:#e8f4ff;color:#185FA5"><span class="t" data-ko="에너지 도달" data-en="Energy reach"></span></div></div>
+          <div class="mm t" data-ko="내 콘텐츠가 타임라인에 뜬 횟수. X 알고리즘이 배포한 양." data-en="How many times your content appeared in timelines. Distributed by X's algorithm."></div>
+          <div class="ma t" data-ko="알고리즘이 준 에너지로, 내가 직접 만든 것이 아닐 수 있습니다. 전환율과 함께 해석하세요." data-en="Energy given by the algorithm — not necessarily created by you. Interpret alongside conversion rate."></div>
+        </div>
+        <div class="mrow">
+          <div class="mn"><span class="t" data-ko="참여수" data-en="Engagements"></span><div class="tag" style="background:#f0fdf4;color:#0F6E56"><span class="t" data-ko="에너지 투입" data-en="Energy input"></span></div></div>
+          <div class="mm t" data-ko="좋아요+리포스트+답글+북마크 합계." data-en="Likes + reposts + replies + bookmarks combined."></div>
+          <div class="ma t" data-ko="사람들이 자기 시간과 행동을 자발적으로 투입한 횟수. PoE 관점에서 핵심 신호." data-en="Times people voluntarily invested their time and action. The core PoE signal."></div>
+        </div>
+        <div class="mrow">
+          <div class="mn"><span class="t" data-ko="에너지 전환율" data-en="Conversion Rate"></span><div class="tag" style="background:#fff8e8;color:#854F0B"><span class="t" data-ko="참여/노출" data-en="Eng./Imp."></span></div></div>
+          <div class="mm t" data-ko="노출 대비 참여 비율. X가 기본으로 안 보여주는 지표." data-en="Engagement-to-impression ratio. A metric X doesn't show by default."></div>
+          <div class="ma t" data-ko="콘텐츠 실질 에너지 집중도. 3% 이상이면 비교적 강한 반응." data-en="Measures real energy concentration. Above 3% suggests strong resonance."></div>
+        </div>
+        <div class="mrow">
+          <div class="mn"><span class="t" data-ko="북마크" data-en="Bookmarks"></span><div class="tag" style="background:#fdf4ff;color:#993556"><span class="t" data-ko="침묵의 에너지" data-en="Silent energy"></span></div></div>
+          <div class="mm t" data-ko="저장한 수. 팔로워에게 보이지 않는 행동." data-en="Saves. An invisible action — not shown to followers."></div>
+          <div class="ma t" data-ko="공개 반응은 못하지만 가치를 인정한 신호. 북마크가 많은 날의 콘텐츠를 주목하세요." data-en="A signal of value recognition without public commitment. Pay attention to high-bookmark days."></div>
+        </div>
+        <div class="mrow">
+          <div class="mn"><span class="t" data-ko="새로운 팔로우" data-en="New Follows"></span><div class="tag" style="background:#f0fdf4;color:#0F6E56"><span class="t" data-ko="에너지 결집" data-en="Energy commitment"></span></div></div>
+          <div class="mm t" data-ko="그날 팔로우한 사람 수." data-en="People who followed you that day."></div>
+          <div class="ma t" data-ko="지속적 관심을 표명한 사람. 팔로우 급증일의 콘텐츠가 핵심 자산." data-en="People committing ongoing attention. Content on high-follow days is your core asset."></div>
+        </div>
       </div>
+
       <div style="margin-bottom:28px;">
-        <div class="gst">두 가지 패턴</div>
+        <div class="gst t" data-ko="두 가지 패턴" data-en="Two patterns to recognize"></div>
         <div class="pgrid">
           <div class="pc" style="background:#fefce8;border:0.5px solid #BA7517">
-            <p style="font-weight:600;font-size:13px;color:#633806;margin-bottom:8px;">패턴 A — 순간 에너지</p>
-            <p style="font-size:13px;color:#854F0B;line-height:1.7;">노출수 높음 + 전환율 낮음<br><br>알고리즘 부스트이거나 논쟁성 콘텐츠일 가능성이 있습니다. PoE 관점에서는 에너지가 지속되지 않을 수 있어 지속 가능성이 낮을 수 있습니다.<br><br><strong>→ 이 날의 패턴이 반복 가능한지 신중히 판단해보세요</strong></p>
+            <p style="font-weight:600;font-size:13px;color:#633806;margin-bottom:8px;" class="t" data-ko="패턴 A — 순간 에너지" data-en="Pattern A — Momentary Energy"></p>
+            <p style="font-size:13px;color:#854F0B;line-height:1.7;" class="t"
+              data-ko="노출수 높음 + 전환율 낮음<br><br>알고리즘 부스트이거나 논쟁성 콘텐츠일 가능성. PoE 관점에서 지속 가능성이 낮을 수 있습니다.<br><br><strong>→ 이 날 패턴이 반복 가능한지 신중히 판단하세요</strong>"
+              data-en="High impressions + low conversion<br><br>Likely algorithm-boosted or controversy-driven. From a PoE perspective, sustainability may be limited.<br><br><strong>→ Consider carefully whether this pattern can be repeated</strong>"></p>
           </div>
           <div class="pc" style="background:#f0fdf4;border:0.5px solid #1D9E75">
-            <p style="font-weight:600;font-size:13px;color:#085041;margin-bottom:8px;">패턴 B — 지속 에너지</p>
-            <p style="font-size:13px;color:#0F6E56;line-height:1.7;">노출수 중간 + 전환율 높음<br><br>사람들이 자발적으로 에너지를 투입한 경향이 보입니다. PoE 관점에서 지속적인 에너지 집중 가능성이 있습니다.<br><br><strong>→ 이 날 콘텐츠의 특징을 분석해보는 것을 권합니다</strong></p>
+            <p style="font-weight:600;font-size:13px;color:#085041;margin-bottom:8px;" class="t" data-ko="패턴 B — 지속 에너지" data-en="Pattern B — Sustained Energy"></p>
+            <p style="font-size:13px;color:#0F6E56;line-height:1.7;" class="t"
+              data-ko="노출수 중간 + 전환율 높음<br><br>사람들이 자발적으로 에너지를 투입한 경향. PoE 관점에서 지속적 에너지 집중 가능성.<br><br><strong>→ 이 날 콘텐츠의 특징을 분석하고 반복하세요</strong>"
+              data-en="Moderate impressions + high conversion<br><br>People voluntarily investing energy. From a PoE perspective, this suggests sustainable energy concentration.<br><br><strong>→ Analyze what made this content work and replicate it</strong>"></p>
           </div>
         </div>
-        <div class="insight blue">X 알고리즘과 PoE 분석이 다른 방향을 가리킬 수 있습니다. 어느 방향이 맞는지는 당신의 목적에 따라 달라집니다. 이 분석은 하나의 관점을 제공할 뿐입니다.</div>
+        <div class="insight blue t"
+          data-ko="X 알고리즘과 PoE 분석이 다른 방향을 가리킬 수 있습니다. 어느 방향이 맞는지는 당신의 목적에 따라 달라집니다. 이 분석은 하나의 관점을 제공할 뿐입니다."
+          data-en="X's algorithm and PoE analysis may point in different directions. Which is right depends on your goals. This analysis offers one perspective — the judgment is yours."></div>
       </div>
+
       <div style="margin-bottom:28px;">
-        <div class="gst">살펴볼 만한 것들</div>
+        <div class="gst t" data-ko="살펴볼 만한 것들" data-en="Things worth examining"></div>
         <div class="alist">
-          <div class="aitem"><div class="anum">1</div><p style="font-size:13px;color:#444;line-height:1.6"><strong>노출수만으로 판단하지 않기.</strong> 알고리즘이 배포한 노출과 사람들이 자발적으로 반응한 참여는 다른 신호일 수 있습니다.</p></div>
-          <div class="aitem"><div class="anum">2</div><p style="font-size:13px;color:#444;line-height:1.6"><strong>전환율이 높았던 날의 콘텐츠 살펴보기.</strong> 주제, 형식, 시간대 등 어떤 특징이 있었는지 직접 확인해보세요.</p></div>
-          <div class="aitem"><div class="anum">3</div><p style="font-size:13px;color:#444;line-height:1.6"><strong>북마크 수 주목하기.</strong> X가 강조하지 않지만, 조용한 관심의 신호일 수 있습니다.</p></div>
-          <div class="aitem"><div class="anum">4</div><p style="font-size:13px;color:#444;line-height:1.6"><strong>팔로우가 늘었던 날 기록하기.</strong> 어떤 콘텐츠가 지속적 관심을 만들어냈는지 파악하는 데 도움이 됩니다.</p></div>
+          <div class="aitem"><div class="anum">1</div><p style="font-size:13px;color:#444;line-height:1.6" class="t" data-ko="<strong>노출수만으로 판단하지 않기.</strong> 알고리즘이 배포한 노출과 사람들이 자발적으로 반응한 참여는 다른 신호입니다." data-en="<strong>Don't judge by impressions alone.</strong> Algorithmically distributed impressions and voluntary engagement are different signals."></p></div>
+          <div class="aitem"><div class="anum">2</div><p style="font-size:13px;color:#444;line-height:1.6" class="t" data-ko="<strong>전환율이 높았던 날의 콘텐츠 살펴보기.</strong> 주제, 형식, 시간대 등 어떤 특징이 있었는지 직접 확인하세요." data-en="<strong>Look at content from your high-conversion days.</strong> What topic, format, or timing made it work? Check it yourself."></p></div>
+          <div class="aitem"><div class="anum">3</div><p style="font-size:13px;color:#444;line-height:1.6" class="t" data-ko="<strong>북마크 수 주목하기.</strong> X가 강조하지 않지만, 조용한 관심의 신호일 수 있습니다." data-en="<strong>Pay attention to bookmarks.</strong> X doesn't highlight them, but they may signal quiet, genuine interest."></p></div>
+          <div class="aitem"><div class="anum">4</div><p style="font-size:13px;color:#444;line-height:1.6" class="t" data-ko="<strong>팔로우가 늘었던 날 기록하기.</strong> 어떤 콘텐츠가 지속적 관심을 만들어냈는지 파악하는 데 도움이 됩니다." data-en="<strong>Record days when follows spiked.</strong> This helps identify what content creates lasting interest."></p></div>
         </div>
       </div>
     </div>
+
+    <!-- 업데이트 탭 -->
     <div class="tab-content" id="tab-update">
       <div class="card">
-        <div class="card-title">데이터를 계속 업데이트해야 하는 이유</div>
-        <p style="font-size:13px;color:#666;line-height:1.7;margin-bottom:20px;">PoE 분석은 데이터가 쌓일수록 패턴이 선명해집니다. 90일보다 180일, 1년 데이터가 더 정확한 에너지 흐름을 보여줍니다.</p>
-        <div class="gst">업데이트 방법</div>
-        <div class="ustep"><div class="snum">1</div><div><p style="font-size:13px;font-weight:500;margin-bottom:4px;">X에서 데이터 내보내기</p><p style="font-size:12px;color:#888;line-height:1.6;">X 프리미엄 → 분석(Analytics) → 내보내기(Export) → <strong>account_overview_analytics.csv</strong> 파일을 선택하세요.</p></div></div>
-        <div class="ustep"><div class="snum">2</div><div><p style="font-size:13px;font-weight:500;margin-bottom:4px;">새 파일 업로드</p><p style="font-size:12px;color:#888;line-height:1.6;">상단 "다른 파일 분석" 버튼으로 새 CSV를 올리세요. 기간이 길수록 패턴이 더 선명합니다.</p></div></div>
-        <div class="ustep"><div class="snum">3</div><div><p style="font-size:13px;font-weight:500;margin-bottom:4px;">권장 업데이트 주기</p><p style="font-size:12px;color:#888;line-height:1.6;">매월 1회 권장. 콘텐츠 실험 전후를 비교하면 변화가 더 잘 보입니다.</p></div></div>
-        <div class="ustep"><div class="snum">4</div><div><p style="font-size:13px;font-weight:500;margin-bottom:4px;">숫자와 함께 기록할 것</p><p style="font-size:12px;color:#888;line-height:1.6;">전환율이 높았던 날 어떤 포스트를 올렸는지 메모해두세요. 숫자와 콘텐츠 내용을 함께 볼 때 진짜 패턴이 보입니다.</p></div></div>
-        <div class="insight" style="margin-top:20px;">이 분석은 답이 아닙니다. 현재 당신의 에너지 흐름 위치를 보여줄 뿐입니다. 방향은 당신이 정하는 거예요.</div>
+        <div class="card-title t" data-ko="데이터를 계속 업데이트해야 하는 이유" data-en="Why you should keep updating your data"></div>
+        <p style="font-size:13px;color:#666;line-height:1.7;margin-bottom:20px;" class="t"
+          data-ko="PoE 분석은 데이터가 쌓일수록 패턴이 선명해집니다. 90일보다 180일, 1년 데이터가 더 정확합니다."
+          data-en="PoE analysis becomes clearer as more data accumulates. 180 days shows more than 90, and a full year more than that."></p>
+        <div class="gst t" data-ko="업데이트 방법" data-en="How to update"></div>
+        <div class="ustep"><div class="snum">1</div><div>
+          <p style="font-size:13px;font-weight:500;margin-bottom:4px;" class="t" data-ko="X에서 데이터 내보내기" data-en="Export data from X"></p>
+          <p style="font-size:12px;color:#888;line-height:1.6;" class="t" data-ko="X 프리미엄 → 분석(Analytics) → 내보내기 → account_overview_analytics.csv 파일을 선택하세요." data-en="X Premium → Analytics → Export → select the account_overview_analytics.csv file."></p>
+        </div></div>
+        <div class="ustep"><div class="snum">2</div><div>
+          <p style="font-size:13px;font-weight:500;margin-bottom:4px;" class="t" data-ko="새 파일 업로드" data-en="Upload the new file"></p>
+          <p style="font-size:12px;color:#888;line-height:1.6;" class="t" data-ko="상단 '다른 파일 분석' 버튼으로 새 CSV를 올리세요. 기간이 길수록 패턴이 선명합니다." data-en="Use the 'Analyze another file' button to upload your new CSV. Longer periods show clearer patterns."></p>
+        </div></div>
+        <div class="ustep"><div class="snum">3</div><div>
+          <p style="font-size:13px;font-weight:500;margin-bottom:4px;" class="t" data-ko="권장 업데이트 주기" data-en="Recommended update frequency"></p>
+          <p style="font-size:12px;color:#888;line-height:1.6;" class="t" data-ko="매월 1회 권장. 콘텐츠 실험 전후를 비교하면 변화가 더 잘 보입니다." data-en="Once a month is recommended. Comparing before and after content experiments makes changes more visible."></p>
+        </div></div>
+        <div class="ustep"><div class="snum">4</div><div>
+          <p style="font-size:13px;font-weight:500;margin-bottom:4px;" class="t" data-ko="숫자와 함께 기록할 것" data-en="Record alongside the numbers"></p>
+          <p style="font-size:12px;color:#888;line-height:1.6;" class="t" data-ko="전환율이 높았던 날 어떤 포스트를 올렸는지 메모해두세요. 숫자와 콘텐츠 내용을 함께 볼 때 진짜 패턴이 보입니다." data-en="Note what you posted on high-conversion days. The real pattern emerges when you combine the numbers with the content."></p>
+        </div></div>
+        <div class="insight" style="margin-top:20px;" class="t"
+          data-ko="이 분석은 답이 아닙니다. 현재 당신의 에너지 흐름 위치를 보여줄 뿐입니다."
+          data-en="This analysis is not the answer. It only shows where your energy flow currently stands."></div>
       </div>
     </div>
   </div>
 </div>
+
 <div class="footer">#ProofOfEnergy #NodeCapitalism — PoE Whitepaper v2.0</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-// quoted CSV 파서 — 쉼표 포함 필드 처리
+// ── 언어 시스템 ──────────────────────────────────────
+let currentLang = 'ko';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', ['ko','en'][i] === lang);
+  });
+  document.querySelectorAll('.t[data-' + lang + ']').forEach(el => {
+    el.innerHTML = el.getAttribute('data-' + lang);
+  });
+  document.querySelector('html').lang = lang;
+}
+
+// 초기 언어 적용
+setLang('ko');
+
+// ── CSV 파서 ──────────────────────────────────────────
 function parseCSV(text) {
   const lines = text.trim().split(/\r?\n/);
   return lines.map(line => {
@@ -187,30 +316,25 @@ function parseCSV(text) {
   });
 }
 
-// 날짜 파싱 — 여러 형식 처리
 function parseDate(raw) {
   if (!raw) return null;
-  // ISO: 2026-03-22
   if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
     const [y, m, d] = raw.split('-');
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     return `${months[parseInt(m)-1]} ${parseInt(d)}`;
   }
-  // X 기본: "Sun, Mar 22, 2026" (이미 quote 제거된 상태)
   const xMatch = raw.match(/([A-Za-z]+)\s+(\d+),?\s*\d{4}/);
   if (xMatch) return `${xMatch[1]} ${parseInt(xMatch[2])}`;
-  // 숫자만: 게시물 ID일 경우 null 반환
   if (/^\d{10,}$/.test(raw)) return null;
-  // 그 외 앞 10자
   return raw.slice(0, 10);
 }
 
-// 컬럼 찾기 — 다국어 키워드
 function findCol(headers, keywords) {
   const kw = keywords.map(k => k.toLowerCase());
   return headers.findIndex(h => kw.some(k => h.toLowerCase().includes(k)));
 }
 
+// ── 이벤트 ────────────────────────────────────────────
 const zone = document.getElementById('uploadZone');
 document.getElementById('fileInput').addEventListener('change', e => handleFile(e.target.files[0]));
 document.getElementById('fileInput2').addEventListener('change', e => handleFile(e.target.files[0]));
@@ -235,31 +359,33 @@ function handleFile(file) {
   r.readAsText(file, 'UTF-8');
 }
 
+function T(ko, en) { return currentLang === 'ko' ? ko : en; }
+
 function parseAndRender(text) {
   document.getElementById('error-area').innerHTML = '';
   const rows = parseCSV(text);
-  if (rows.length < 2) { showError('데이터를 읽을 수 없어요. CSV 형식을 확인해주세요.'); return; }
+  if (rows.length < 2) { showError(T('데이터를 읽을 수 없어요.', 'Could not read data.')); return; }
 
   const headers = rows[0];
-
-  // 다국어 컬럼 탐지
   const impIdx = findCol(headers, ['노출수','노출','impression','impressions','impression count']);
   const engIdx = findCol(headers, ['참여수','참여','engagement','engagements','engagement count']);
 
   if (impIdx === -1 || engIdx === -1) {
-    showError(`노출수 또는 참여수 컬럼을 찾을 수 없어요.<br>업로드한 파일: <strong>${headers.slice(0,4).join(', ')}</strong>...<br><br>X 분석 내보내기에서 <strong>account_overview_analytics.csv</strong> 파일을 사용해주세요. 게시물별 파일(tweet 등)은 지원하지 않습니다.`);
+    showError(T(
+      `노출수 또는 참여수 컬럼을 찾을 수 없어요. <strong>account_overview_analytics.csv</strong> 파일을 사용해주세요.`,
+      `Could not find impressions or engagements columns. Please use the <strong>account_overview_analytics.csv</strong> file.`
+    ));
     zone.style.display = 'none';
     document.getElementById('results').style.display = 'block';
     return;
   }
 
   const data = [];
-  let skipped = 0;
   for (let i = 1; i < rows.length; i++) {
     const cols = rows[i];
     if (!cols || cols.length < 2) continue;
     const dateLabel = parseDate(cols[0]);
-    if (!dateLabel) { skipped++; continue; } // 게시물 ID 등 날짜 아닌 행 스킵
+    if (!dateLabel) continue;
     const imp = parseInt(cols[impIdx]) || 0;
     const eng = parseInt(cols[engIdx]) || 0;
     if (imp === 0 && eng === 0) continue;
@@ -267,7 +393,7 @@ function parseAndRender(text) {
   }
 
   if (data.length === 0) {
-    showError('유효한 날짜 데이터가 없어요. account_overview_analytics.csv 파일인지 확인해주세요.');
+    showError(T('유효한 날짜 데이터가 없어요. account_overview_analytics.csv 파일인지 확인해주세요.', 'No valid date data found. Please check that you uploaded account_overview_analytics.csv.'));
     zone.style.display = 'none';
     document.getElementById('results').style.display = 'block';
     return;
@@ -277,7 +403,6 @@ function parseAndRender(text) {
   const dates = data.map(d => d.date);
   const imps = data.map(d => d.imp);
   const effs = data.map(d => d.imp > 0 ? parseFloat((d.eng / d.imp * 100).toFixed(2)) : 0);
-
   const total = imps.reduce((a, b) => a + b, 0);
   const avg = Math.round(total / imps.length);
   const totalEng = data.reduce((a, d) => a + d.eng, 0);
@@ -291,27 +416,28 @@ function parseAndRender(text) {
   document.getElementById('m-total').textContent = total.toLocaleString();
   document.getElementById('m-avg').textContent = avg.toLocaleString();
   document.getElementById('m-conv').textContent = avgEff + '%';
-  document.getElementById('m-spikes').textContent = spikes.length + '일';
+  document.getElementById('m-spikes').textContent = spikes.length + T('일', ' days');
 
-  document.getElementById('insight-main').textContent =
-    `전체 ${data.length}일 중 고에너지 급등일 ${spikes.length}일(${(spikes.length/data.length*100).toFixed(0)}%). ` +
-    `그 중 ${hiSpikes.length}일은 전환율도 높아 지속적 에너지 집중 가능성이 있는 날로 분류됩니다.`;
+  document.getElementById('insight-main').textContent = T(
+    `전체 ${data.length}일 중 고에너지 급등일 ${spikes.length}일(${(spikes.length/data.length*100).toFixed(0)}%). 그 중 ${hiSpikes.length}일은 전환율도 높아 지속적 에너지 집중 가능성이 있는 날로 분류됩니다.`,
+    `${spikes.length} high-energy spike days out of ${data.length} total (${(spikes.length/data.length*100).toFixed(0)}%). Of those, ${hiSpikes.length} also had above-average conversion — suggesting sustained energy concentration.`
+  );
 
   const bestEff = [...data].filter(d => d.imp > 50).sort((a,b) => (b.eng/b.imp) - (a.eng/a.imp)).slice(0, 3);
-  document.getElementById('insight-eff').textContent =
-    `전환율 상위 3일: ${bestEff.map(d => `${d.date} (${(d.eng/d.imp*100).toFixed(1)}%)`).join(', ')}. ` +
-    `이 날들의 콘텐츠에서 공통점을 찾아보는 것을 권합니다.`;
+  document.getElementById('insight-eff').textContent = T(
+    `전환율 상위 3일: ${bestEff.map(d => `${d.date} (${(d.eng/d.imp*100).toFixed(1)}%)`).join(', ')}. 이 날들의 콘텐츠에서 공통점을 찾아보는 것을 권합니다.`,
+    `Top 3 conversion days: ${bestEff.map(d => `${d.date} (${(d.eng/d.imp*100).toFixed(1)}%)`).join(', ')}. Consider looking for patterns in the content from these days.`
+  );
 
-  document.getElementById('insight-spike').textContent =
-    `전환율이 낮은 급등일 ${loSpikes.length}일은 알고리즘 부스트이거나 논쟁성 콘텐츠일 가능성이 있습니다. ` +
-    `이 패턴이 지속 가능한지 판단해보세요.`;
+  document.getElementById('insight-spike').textContent = T(
+    `전환율이 낮은 급등일 ${loSpikes.length}일은 알고리즘 부스트이거나 논쟁성 콘텐츠일 가능성이 있습니다. 이 패턴이 지속 가능한지 판단해보세요.`,
+    `${loSpikes.length} spike days had below-average conversion — possibly algorithm-boosted or controversy-driven. Consider whether that pattern is sustainable.`
+  );
 
-  document.getElementById('poe-summary').textContent =
-    `에너지 전환율 ${avgEff}%는 ` +
-    (parseFloat(avgEff) > 3
-      ? '비교적 양호한 수준입니다. 노출 대비 실질 참여가 이루어지고 있는 경향이 보입니다.'
-      : '개선 여지가 있을 수 있습니다. 에너지 집중도를 높이는 콘텐츠 실험을 고려해보세요.') +
-    ` 고전환 급등일 ${hiSpikes.length}일의 콘텐츠 특징을 직접 확인해보세요. 이 분석은 하나의 관점입니다. 판단은 당신이 하는 것입니다.`;
+  document.getElementById('poe-summary').textContent = T(
+    `에너지 전환율 ${avgEff}%는 ` + (parseFloat(avgEff) > 3 ? '비교적 양호한 수준입니다. 노출 대비 실질 참여가 이루어지고 있는 경향이 보입니다.' : '개선 여지가 있을 수 있습니다. 에너지 집중도를 높이는 콘텐츠 실험을 고려해보세요.') + ` 고전환 급등일 ${hiSpikes.length}일의 콘텐츠 특징을 직접 확인해보세요. 이 분석은 하나의 관점입니다. 판단은 당신이 하는 것입니다.`,
+    `Your energy conversion rate of ${avgEff}% is ` + (parseFloat(avgEff) > 3 ? 'relatively healthy. There is a tendency toward genuine engagement relative to impressions.' : 'an area worth improving. Consider experimenting with content that drives deeper engagement.') + ` Take a close look at your ${hiSpikes.length} high-conversion spike days. This analysis offers one perspective — the judgment is yours.`
+  );
 
   const sl = document.getElementById('spikeList');
   sl.innerHTML = '';
@@ -328,7 +454,7 @@ function parseAndRender(text) {
     type: 'bar',
     data: { labels: dates, datasets: [{ data: imps, backgroundColor: imps.map(v => v >= thr ? '#1D9E75' : '#378ADD'), borderRadius: 2 }] },
     options: { responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => '노출: ' + ctx.raw.toLocaleString() } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => (T('노출','Imp.'))+': ' + ctx.raw.toLocaleString() } } },
       scales: { x: { ticks: { font:{size:10}, maxRotation:45, autoSkip:true, maxTicksLimit:20 }, grid: { color:'rgba(0,0,0,0.04)' } }, y: { ticks: { font:{size:11} }, grid: { color:'rgba(0,0,0,0.04)' } } }
     }
   });
