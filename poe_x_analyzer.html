@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoE X Analyzer — Proof of Energy</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+.header { background: #1a1a2e; color: white; padding: 24px 32px; }
+.header h1 { font-size: 22px; font-weight: 600; }
+.header p { font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 4px; }
+.context-banner { background: white; border-left: 3px solid #378ADD; border-radius: 0 10px 10px 0; padding: 14px 18px; margin: 20px 0; font-size: 13px; color: #444; line-height: 1.7; }
+.context-banner strong { color: #1a1a2e; }
+.container { max-width: 920px; margin: 0 auto; padding: 24px 20px; }
+.upload-zone { border: 1.5px dashed #ccc; border-radius: 12px; padding: 40px; text-align: center; background: white; margin-bottom: 24px; transition: border-color 0.2s; }
+.upload-zone:hover { border-color: #378ADD; }
+.upload-zone.active { border-color: #1D9E75; background: #f0fdf4; }
+.upload-zone input { display: none; }
+.upload-btn { display: inline-block; margin-top: 16px; padding: 10px 24px; background: #1a1a2e; color: white; border-radius: 8px; font-size: 13px; cursor: pointer; }
+.upload-btn-sm { display: inline-block; padding: 8px 18px; background: transparent; color: #1a1a2e; border: 0.5px solid #ccc; border-radius: 8px; font-size: 12px; cursor: pointer; margin-bottom: 20px; }
+.tabs { display: flex; border-bottom: 0.5px solid #e5e7eb; margin-bottom: 24px; }
+.tab { padding: 10px 20px; font-size: 13px; cursor: pointer; color: #888; border-bottom: 2px solid transparent; }
+.tab.active { color: #1a1a2e; border-bottom-color: #1a1a2e; font-weight: 500; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+.metric { background: white; border-radius: 10px; padding: 16px; border: 0.5px solid #e5e7eb; }
+.metric-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.metric-value { font-size: 24px; font-weight: 600; color: #1a1a2e; }
+.metric-sub { font-size: 11px; color: #aaa; margin-top: 4px; }
+.card { background: white; border-radius: 12px; padding: 20px; border: 0.5px solid #e5e7eb; margin-bottom: 20px; }
+.card-title { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; }
+.chart-wrap { position: relative; width: 100%; }
+.insight { background: #f0fdf4; border-left: 3px solid #1D9E75; border-radius: 0 8px 8px 0; padding: 12px 16px; margin-top: 14px; font-size: 13px; color: #0F6E56; line-height: 1.6; }
+.insight.amber { background: #fefce8; border-color: #BA7517; color: #854F0B; }
+.insight.blue { background: #e8f4ff; border-color: #378ADD; color: #185FA5; }
+.spike-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #f0f0f0; }
+.spike-row:last-child { border-bottom: none; }
+.spike-date { font-size: 12px; color: #888; min-width: 100px; }
+.spike-bar-bg { flex: 1; background: #f0f0f0; border-radius: 4px; height: 8px; overflow: hidden; }
+.spike-bar-fill { height: 8px; border-radius: 4px; }
+.spike-num { font-size: 13px; font-weight: 500; min-width: 64px; text-align: right; }
+.spike-eff { font-size: 12px; min-width: 60px; text-align: right; }
+.legend { display: flex; gap: 20px; font-size: 12px; color: #888; margin-bottom: 10px; flex-wrap: wrap; }
+.legend span { display: flex; align-items: center; gap: 5px; }
+.dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.dark-card { background: #1a1a2e; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.dark-card .card-title { color: rgba(255,255,255,0.4); }
+.dark-card p { font-size: 14px; color: rgba(255,255,255,0.82); line-height: 1.8; }
+.gst { font-size: 11px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 0.5px solid #e5e7eb; }
+.mrow { display: grid; grid-template-columns: 160px 1fr 1fr; border: 0.5px solid #e5e7eb; border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+.mrow > div { padding: 13px 15px; font-size: 13px; line-height: 1.6; }
+.mn { background: #f8f9fa; font-weight: 500; border-right: 0.5px solid #e5e7eb; }
+.mn .tag { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 4px; margin-top: 5px; font-weight: 400; }
+.mm { color: #666; border-right: 0.5px solid #e5e7eb; }
+.ma { color: #444; }
+.pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.pc { border-radius: 10px; padding: 16px; }
+.alist { border: 0.5px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
+.aitem { padding: 14px 18px; border-bottom: 0.5px solid #f0f0f0; display: flex; gap: 12px; }
+.aitem:last-child { border-bottom: none; }
+.anum { font-size: 13px; font-weight: 600; color: #1D9E75; min-width: 20px; }
+.ustep { display: flex; gap: 14px; padding: 12px 0; border-bottom: 0.5px solid #f5f5f5; align-items: flex-start; }
+.ustep:last-child { border-bottom: none; }
+.snum { width: 24px; height: 24px; background: #1a1a2e; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+.error-box { background: #fff5f5; border: 0.5px solid #F09595; border-radius: 10px; padding: 16px 20px; font-size: 13px; color: #A32D2D; line-height: 1.7; margin-bottom: 16px; }
+.footer { text-align: center; padding: 32px; font-size: 12px; color: #bbb; }
+@media(max-width:640px){ .metrics{grid-template-columns:repeat(2,1fr);} .mrow{grid-template-columns:1fr;} .mm,.mn{border-right:none;border-bottom:0.5px solid #e5e7eb;} .pgrid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>PoE X Analyzer</h1>
+  <p>Proof of Energy — X 계정 에너지 흐름 분석</p>
+</div>
+<div class="container">
+  <div class="context-banner">
+    <strong>X 알고리즘은 플랫폼의 방향을 최적화합니다.</strong> 이 분석은 당신 콘텐츠의 실제 에너지 흐름을 보여줍니다.<br>
+    둘은 다를 수 있습니다. 이 도구는 답을 주지 않습니다. <strong>현재 당신의 위치를 보여줄 뿐입니다.</strong>
+  </div>
+  <div class="upload-zone" id="uploadZone">
+    <h3 style="font-size:15px;color:#444;margin-bottom:8px;">X 분석 데이터를 업로드하세요</h3>
+    <p style="font-size:13px;color:#999;">X 프리미엄 → 분석 → 내보내기 <strong>account_overview</strong> CSV 파일</p>
+    <label class="upload-btn">파일 선택<input type="file" id="fileInput" accept=".csv"></label>
+    <p style="margin-top:12px;font-size:12px;color:#ccc;">또는 파일을 여기로 드래그하세요</p>
+  </div>
+  <div id="results" style="display:none;">
+    <label class="upload-btn-sm">다른 파일 분석<input type="file" id="fileInput2" accept=".csv" style="display:none;"></label>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('analysis')">분석 결과</div>
+      <div class="tab" onclick="switchTab('guide')">PoE 해석 가이드</div>
+      <div class="tab" onclick="switchTab('update')">데이터 업데이트 방법</div>
+    </div>
+    <div class="tab-content active" id="tab-analysis">
+      <div id="error-area"></div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">총 노출 에너지</div><div class="metric-value" id="m-total">—</div><div class="metric-sub">전체 기간 누적</div></div>
+        <div class="metric"><div class="metric-label">일평균 노출</div><div class="metric-value" id="m-avg">—</div><div class="metric-sub">기준선</div></div>
+        <div class="metric"><div class="metric-label">에너지 전환율</div><div class="metric-value" id="m-conv">—</div><div class="metric-sub">참여 / 노출</div></div>
+        <div class="metric"><div class="metric-label">고에너지 급등일</div><div class="metric-value" id="m-spikes">—</div><div class="metric-sub">평균 3배 이상</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">일별 에너지 흐름</div>
+        <div class="legend"><span><span class="dot" style="background:#1D9E75"></span>고에너지 급등</span><span><span class="dot" style="background:#378ADD"></span>일반 에너지</span></div>
+        <div class="chart-wrap" style="height:220px"><canvas id="mainChart"></canvas></div>
+        <div class="insight" id="insight-main"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">에너지 전환 효율 — PoE 핵심 지표</div>
+        <p style="font-size:12px;color:#aaa;margin-bottom:12px;">노출 대비 실제 참여 비율. 높을수록 에너지가 자발적으로 모이는 콘텐츠.</p>
+        <div class="chart-wrap" style="height:200px"><canvas id="effChart"></canvas></div>
+        <div class="insight amber" id="insight-eff"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">고에너지 급등일 상세</div>
+        <p style="font-size:12px;color:#aaa;margin-bottom:14px;"><span style="color:#1D9E75;font-weight:500">초록</span> = 전환율 평균 이상 &nbsp;|&nbsp; <span style="color:#378ADD;font-weight:500">파랑</span> = 전환율 평균 이하</p>
+        <div id="spikeList"></div>
+        <div class="insight" id="insight-spike"></div>
+      </div>
+      <div class="dark-card"><div class="card-title">PoE 종합 해석</div><p id="poe-summary"></p></div>
+    </div>
+    <div class="tab-content" id="tab-guide">
+      <div style="margin-bottom:28px;">
+        <div class="gst">각 지표가 의미하는 것</div>
+        <div class="mrow"><div class="mn">노출수<div class="tag" style="background:#e8f4ff;color:#185FA5">에너지 도달</div></div><div class="mm">내 콘텐츠가 타임라인에 뜬 횟수. X 알고리즘이 배포한 양.</div><div class="ma">알고리즘이 준 에너지로, 내가 직접 만든 것이 아닐 수 있습니다. 단독 지표보다는 전환율과 함께 해석하는 것이 유용합니다.</div></div>
+        <div class="mrow"><div class="mn">참여수<div class="tag" style="background:#f0fdf4;color:#0F6E56">에너지 투입</div></div><div class="mm">좋아요+리포스트+답글+북마크 합계.</div><div class="ma">사람들이 자기 시간과 행동을 자발적으로 투입한 횟수. PoE 관점에서 핵심 신호로 볼 수 있습니다.</div></div>
+        <div class="mrow"><div class="mn">에너지 전환율<div class="tag" style="background:#fff8e8;color:#854F0B">참여/노출</div></div><div class="mm">노출 대비 참여 비율. X가 기본으로 보여주지 않는 지표.</div><div class="ma">콘텐츠의 실질 에너지 집중 경향을 나타냅니다. 3% 이상이면 비교적 강한 반응으로 볼 수 있습니다.</div></div>
+        <div class="mrow"><div class="mn">북마크<div class="tag" style="background:#fdf4ff;color:#993556">침묵의 에너지</div></div><div class="mm">저장한 수. 팔로워에게 보이지 않는 행동.</div><div class="ma">공개적으로 반응하지 않았지만 가치를 인정한 신호일 가능성이 높습니다. 북마크가 많은 날의 콘텐츠를 주목해볼 만합니다.</div></div>
+        <div class="mrow"><div class="mn">새로운 팔로우<div class="tag" style="background:#f0fdf4;color:#0F6E56">에너지 결집</div></div><div class="mm">그날 팔로우한 사람 수.</div><div class="ma">콘텐츠에 지속적 관심을 보인 사람. 팔로우가 많았던 날의 콘텐츠가 에너지 집중 측면에서 의미 있을 수 있습니다.</div></div>
+      </div>
+      <div style="margin-bottom:28px;">
+        <div class="gst">두 가지 패턴</div>
+        <div class="pgrid">
+          <div class="pc" style="background:#fefce8;border:0.5px solid #BA7517">
+            <p style="font-weight:600;font-size:13px;color:#633806;margin-bottom:8px;">패턴 A — 순간 에너지</p>
+            <p style="font-size:13px;color:#854F0B;line-height:1.7;">노출수 높음 + 전환율 낮음<br><br>알고리즘 부스트이거나 논쟁성 콘텐츠일 가능성이 있습니다. PoE 관점에서는 에너지가 지속되지 않을 수 있어 지속 가능성이 낮을 수 있습니다.<br><br><strong>→ 이 날의 패턴이 반복 가능한지 신중히 판단해보세요</strong></p>
+          </div>
+          <div class="pc" style="background:#f0fdf4;border:0.5px solid #1D9E75">
+            <p style="font-weight:600;font-size:13px;color:#085041;margin-bottom:8px;">패턴 B — 지속 에너지</p>
+            <p style="font-size:13px;color:#0F6E56;line-height:1.7;">노출수 중간 + 전환율 높음<br><br>사람들이 자발적으로 에너지를 투입한 경향이 보입니다. PoE 관점에서 지속적인 에너지 집중 가능성이 있습니다.<br><br><strong>→ 이 날 콘텐츠의 특징을 분석해보는 것을 권합니다</strong></p>
+          </div>
+        </div>
+        <div class="insight blue">X 알고리즘과 PoE 분석이 다른 방향을 가리킬 수 있습니다. 어느 방향이 맞는지는 당신의 목적에 따라 달라집니다. 이 분석은 하나의 관점을 제공할 뿐입니다.</div>
+      </div>
+      <div style="margin-bottom:28px;">
+        <div class="gst">살펴볼 만한 것들</div>
+        <div class="alist">
+          <div class="aitem"><div class="anum">1</div><p style="font-size:13px;color:#444;line-height:1.6"><strong>노출수만으로 판단하지 않기.</strong> 알고리즘이 배포한 노출과 사람들이 자발적으로 반응한 참여는 다른 신호일 수 있습니다.</p></div>
+          <div class="aitem"><div class="anum">2</div><p style="font-size:13px;color:#444;line-height:1.6"><strong>전환율이 높았던 날의 콘텐츠 살펴보기.</strong> 주제, 형식, 시간대 등 어떤 특징이 있었는지 직접 확인해보세요.</p></div>
+          <div class="aitem"><div class="anum">3</div><p style="font-size:13px;color:#444;line-height:1.6"><strong>북마크 수 주목하기.</strong> X가 강조하지 않지만, 조용한 관심의 신호일 수 있습니다.</p></div>
+          <div class="aitem"><div class="anum">4</div><p style="font-size:13px;color:#444;line-height:1.6"><strong>팔로우가 늘었던 날 기록하기.</strong> 어떤 콘텐츠가 지속적 관심을 만들어냈는지 파악하는 데 도움이 됩니다.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-update">
+      <div class="card">
+        <div class="card-title">데이터를 계속 업데이트해야 하는 이유</div>
+        <p style="font-size:13px;color:#666;line-height:1.7;margin-bottom:20px;">PoE 분석은 데이터가 쌓일수록 패턴이 선명해집니다. 90일보다 180일, 1년 데이터가 더 정확한 에너지 흐름을 보여줍니다.</p>
+        <div class="gst">업데이트 방법</div>
+        <div class="ustep"><div class="snum">1</div><div><p style="font-size:13px;font-weight:500;margin-bottom:4px;">X에서 데이터 내보내기</p><p style="font-size:12px;color:#888;line-height:1.6;">X 프리미엄 → 분석(Analytics) → 내보내기(Export) → <strong>account_overview_analytics.csv</strong> 파일을 선택하세요.</p></div></div>
+        <div class="ustep"><div class="snum">2</div><div><p style="font-size:13px;font-weight:500;margin-bottom:4px;">새 파일 업로드</p><p style="font-size:12px;color:#888;line-height:1.6;">상단 "다른 파일 분석" 버튼으로 새 CSV를 올리세요. 기간이 길수록 패턴이 더 선명합니다.</p></div></div>
+        <div class="ustep"><div class="snum">3</div><div><p style="font-size:13px;font-weight:500;margin-bottom:4px;">권장 업데이트 주기</p><p style="font-size:12px;color:#888;line-height:1.6;">매월 1회 권장. 콘텐츠 실험 전후를 비교하면 변화가 더 잘 보입니다.</p></div></div>
+        <div class="ustep"><div class="snum">4</div><div><p style="font-size:13px;font-weight:500;margin-bottom:4px;">숫자와 함께 기록할 것</p><p style="font-size:12px;color:#888;line-height:1.6;">전환율이 높았던 날 어떤 포스트를 올렸는지 메모해두세요. 숫자와 콘텐츠 내용을 함께 볼 때 진짜 패턴이 보입니다.</p></div></div>
+        <div class="insight" style="margin-top:20px;">이 분석은 답이 아닙니다. 현재 당신의 에너지 흐름 위치를 보여줄 뿐입니다. 방향은 당신이 정하는 거예요.</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="footer">#ProofOfEnergy #NodeCapitalism — PoE Whitepaper v2.0</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// quoted CSV 파서 — 쉼표 포함 필드 처리
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  return lines.map(line => {
+    const fields = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { fields.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    fields.push(cur.trim());
+    return fields;
+  });
+}
+
+// 날짜 파싱 — 여러 형식 처리
+function parseDate(raw) {
+  if (!raw) return null;
+  // ISO: 2026-03-22
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    const [y, m, d] = raw.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[parseInt(m)-1]} ${parseInt(d)}`;
+  }
+  // X 기본: "Sun, Mar 22, 2026" (이미 quote 제거된 상태)
+  const xMatch = raw.match(/([A-Za-z]+)\s+(\d+),?\s*\d{4}/);
+  if (xMatch) return `${xMatch[1]} ${parseInt(xMatch[2])}`;
+  // 숫자만: 게시물 ID일 경우 null 반환
+  if (/^\d{10,}$/.test(raw)) return null;
+  // 그 외 앞 10자
+  return raw.slice(0, 10);
+}
+
+// 컬럼 찾기 — 다국어 키워드
+function findCol(headers, keywords) {
+  const kw = keywords.map(k => k.toLowerCase());
+  return headers.findIndex(h => kw.some(k => h.toLowerCase().includes(k)));
+}
+
+const zone = document.getElementById('uploadZone');
+document.getElementById('fileInput').addEventListener('change', e => handleFile(e.target.files[0]));
+document.getElementById('fileInput2').addEventListener('change', e => handleFile(e.target.files[0]));
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('active'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('active'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('active'); handleFile(e.dataTransfer.files[0]); });
+
+function switchTab(n) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['analysis','guide','update'][i] === n));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + n).classList.add('active');
+}
+
+function showError(msg) {
+  document.getElementById('error-area').innerHTML = `<div class="error-box">${msg}</div>`;
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = e => parseAndRender(e.target.result);
+  r.readAsText(file, 'UTF-8');
+}
+
+function parseAndRender(text) {
+  document.getElementById('error-area').innerHTML = '';
+  const rows = parseCSV(text);
+  if (rows.length < 2) { showError('데이터를 읽을 수 없어요. CSV 형식을 확인해주세요.'); return; }
+
+  const headers = rows[0];
+
+  // 다국어 컬럼 탐지
+  const impIdx = findCol(headers, ['노출수','노출','impression','impressions','impression count']);
+  const engIdx = findCol(headers, ['참여수','참여','engagement','engagements','engagement count']);
+
+  if (impIdx === -1 || engIdx === -1) {
+    showError(`노출수 또는 참여수 컬럼을 찾을 수 없어요.<br>업로드한 파일: <strong>${headers.slice(0,4).join(', ')}</strong>...<br><br>X 분석 내보내기에서 <strong>account_overview_analytics.csv</strong> 파일을 사용해주세요. 게시물별 파일(tweet 등)은 지원하지 않습니다.`);
+    zone.style.display = 'none';
+    document.getElementById('results').style.display = 'block';
+    return;
+  }
+
+  const data = [];
+  let skipped = 0;
+  for (let i = 1; i < rows.length; i++) {
+    const cols = rows[i];
+    if (!cols || cols.length < 2) continue;
+    const dateLabel = parseDate(cols[0]);
+    if (!dateLabel) { skipped++; continue; } // 게시물 ID 등 날짜 아닌 행 스킵
+    const imp = parseInt(cols[impIdx]) || 0;
+    const eng = parseInt(cols[engIdx]) || 0;
+    if (imp === 0 && eng === 0) continue;
+    data.push({ date: dateLabel, imp, eng });
+  }
+
+  if (data.length === 0) {
+    showError('유효한 날짜 데이터가 없어요. account_overview_analytics.csv 파일인지 확인해주세요.');
+    zone.style.display = 'none';
+    document.getElementById('results').style.display = 'block';
+    return;
+  }
+
+  data.reverse();
+  const dates = data.map(d => d.date);
+  const imps = data.map(d => d.imp);
+  const effs = data.map(d => d.imp > 0 ? parseFloat((d.eng / d.imp * 100).toFixed(2)) : 0);
+
+  const total = imps.reduce((a, b) => a + b, 0);
+  const avg = Math.round(total / imps.length);
+  const totalEng = data.reduce((a, d) => a + d.eng, 0);
+  const avgEff = (totalEng / total * 100).toFixed(1);
+  const thr = avg * 3;
+  const spikes = data.filter(d => d.imp >= thr).sort((a, b) => b.imp - a.imp);
+  const maxImp = Math.max(...imps);
+  const hiSpikes = spikes.filter(d => (d.eng / d.imp * 100) > parseFloat(avgEff));
+  const loSpikes = spikes.filter(d => (d.eng / d.imp * 100) <= parseFloat(avgEff));
+
+  document.getElementById('m-total').textContent = total.toLocaleString();
+  document.getElementById('m-avg').textContent = avg.toLocaleString();
+  document.getElementById('m-conv').textContent = avgEff + '%';
+  document.getElementById('m-spikes').textContent = spikes.length + '일';
+
+  document.getElementById('insight-main').textContent =
+    `전체 ${data.length}일 중 고에너지 급등일 ${spikes.length}일(${(spikes.length/data.length*100).toFixed(0)}%). ` +
+    `그 중 ${hiSpikes.length}일은 전환율도 높아 지속적 에너지 집중 가능성이 있는 날로 분류됩니다.`;
+
+  const bestEff = [...data].filter(d => d.imp > 50).sort((a,b) => (b.eng/b.imp) - (a.eng/a.imp)).slice(0, 3);
+  document.getElementById('insight-eff').textContent =
+    `전환율 상위 3일: ${bestEff.map(d => `${d.date} (${(d.eng/d.imp*100).toFixed(1)}%)`).join(', ')}. ` +
+    `이 날들의 콘텐츠에서 공통점을 찾아보는 것을 권합니다.`;
+
+  document.getElementById('insight-spike').textContent =
+    `전환율이 낮은 급등일 ${loSpikes.length}일은 알고리즘 부스트이거나 논쟁성 콘텐츠일 가능성이 있습니다. ` +
+    `이 패턴이 지속 가능한지 판단해보세요.`;
+
+  document.getElementById('poe-summary').textContent =
+    `에너지 전환율 ${avgEff}%는 ` +
+    (parseFloat(avgEff) > 3
+      ? '비교적 양호한 수준입니다. 노출 대비 실질 참여가 이루어지고 있는 경향이 보입니다.'
+      : '개선 여지가 있을 수 있습니다. 에너지 집중도를 높이는 콘텐츠 실험을 고려해보세요.') +
+    ` 고전환 급등일 ${hiSpikes.length}일의 콘텐츠 특징을 직접 확인해보세요. 이 분석은 하나의 관점입니다. 판단은 당신이 하는 것입니다.`;
+
+  const sl = document.getElementById('spikeList');
+  sl.innerHTML = '';
+  spikes.forEach(d => {
+    const eff = (d.eng / d.imp * 100).toFixed(1);
+    const isH = parseFloat(eff) > parseFloat(avgEff);
+    const pct = Math.round(d.imp / maxImp * 100);
+    sl.innerHTML += `<div class="spike-row"><div class="spike-date">${d.date}</div><div class="spike-bar-bg"><div class="spike-bar-fill" style="width:${pct}%;background:${isH?'#1D9E75':'#378ADD'}"></div></div><div class="spike-num">${d.imp.toLocaleString()}</div><div class="spike-eff" style="color:${isH?'#1D9E75':'#aaa'}">${eff}%</div></div>`;
+  });
+
+  ['mainChart','effChart'].forEach(id => { const c = Chart.getChart(id); if (c) c.destroy(); });
+
+  new Chart(document.getElementById('mainChart'), {
+    type: 'bar',
+    data: { labels: dates, datasets: [{ data: imps, backgroundColor: imps.map(v => v >= thr ? '#1D9E75' : '#378ADD'), borderRadius: 2 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => '노출: ' + ctx.raw.toLocaleString() } } },
+      scales: { x: { ticks: { font:{size:10}, maxRotation:45, autoSkip:true, maxTicksLimit:20 }, grid: { color:'rgba(0,0,0,0.04)' } }, y: { ticks: { font:{size:11} }, grid: { color:'rgba(0,0,0,0.04)' } } }
+    }
+  });
+
+  new Chart(document.getElementById('effChart'), {
+    type: 'line',
+    data: { labels: dates, datasets: [{ data: effs, borderColor:'#D85A30', backgroundColor:'rgba(216,90,48,0.07)', borderWidth:1.5, fill:true, tension:0.3, pointRadius: effs.map(v=>v>10?4:1.5), pointBackgroundColor: effs.map(v=>v>10?'#D85A30':'rgba(216,90,48,0.4)') }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } },
+      scales: { x: { ticks: { font:{size:10}, maxRotation:45, autoSkip:true, maxTicksLimit:20 }, grid: { color:'rgba(0,0,0,0.04)' } }, y: { ticks: { font:{size:11}, callback: v => v + '%' }, grid: { color:'rgba(0,0,0,0.04)' } } }
+    }
+  });
+
+  zone.style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+  switchTab('analysis');
+}
+</script>
+</body>
+</html>
