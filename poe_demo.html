@@ -53,13 +53,13 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
 .tl-item:last-child { margin-bottom: 0; }
 .tl-dot { position: absolute; left: -28px; top: 6px; width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--green); background: var(--bg); }
 .tl-dot.filled { background: var(--green); }
-.tl-date { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.1em; margin-bottom: 8px; }
-.tl-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.01em; }
-.tl-desc { font-size: 13px; color: var(--text-dim); line-height: 1.8; margin-bottom: 16px; max-width: 600px; }
+.tl-date { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.45); letter-spacing: 0.1em; margin-bottom: 8px; }
+.tl-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.01em; color: rgba(255,255,255,0.95); }
+.tl-desc { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.8; margin-bottom: 16px; max-width: 600px; }
 .tl-links { display: flex; gap: 8px; flex-wrap: wrap; }
-.tl-btn { font-family: var(--mono); font-size: 10px; padding: 6px 14px; border-radius: 5px; border: 1px solid var(--line); color: var(--text-dim); text-decoration: none; transition: all 0.15s; letter-spacing: 0.05em; background: transparent; display: inline-block; }
+.tl-btn { font-family: var(--mono); font-size: 10px; padding: 6px 14px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); text-decoration: none; transition: all 0.15s; letter-spacing: 0.05em; background: transparent; display: inline-block; }
 .tl-btn:hover { border-color: var(--green); color: var(--green); }
-.tl-btn.ko { border-color: rgba(0,232,162,0.25); color: var(--green); }
+.tl-btn.ko { border-color: rgba(0,232,162,0.35); color: var(--green); }
 
 /* Tools */
 .tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
@@ -213,10 +213,10 @@ footer { padding: 48px; border-top: 1px solid var(--line); display: flex; justif
     <div class="tl-item">
       <div class="tl-dot filled"></div>
       <div class="tl-date t" data-ko="2026년 3월" data-en="March 2026"></div>
-      <div class="tl-title t" data-ko="PoE 오라클 백서 v2.0 + 시뮬레이터" data-en="PoE Oracle Whitepaper v2.0 + Simulator"></div>
+      <div class="tl-title t" data-ko="PoE 오라클 백서 v2.0" data-en="PoE Oracle Whitepaper v2.0"></div>
       <div class="tl-desc t"
-        data-ko="PoET 스펙의 심화 버전. 위험 감수 행위, 도구로서의 AI, 자유로운 노드 이동이라는 세 가지 새로운 명제 추가. 브라우저에서 직접 실행되는 네트워크 시뮬레이터 포함."
-        data-en="An advanced version of the PoET spec. Three new propositions: risk-bearing behavior, AI as instrument, free node mobility as final verification. Includes a browser-based network simulator.">
+        data-ko="PoET 스펙의 심화 버전. 위험 감수 행위, 도구로서의 AI, 자유로운 노드 이동이라는 세 가지 새로운 명제 추가. 네트워크 시뮬레이터는 아래 섹션에서 직접 실행할 수 있습니다."
+        data-en="An advanced version of the PoET spec. Three new propositions: risk-bearing behavior, AI as instrument, and free node mobility as final verification. The network simulator is available in the section below.">
       </div>
       <div class="tl-links">
         <a href="PoE_Whitepaper_v2_KO.docx" target="_blank" class="tl-btn ko t" data-ko="한국어 다운로드" data-en="Korean Download"></a>
