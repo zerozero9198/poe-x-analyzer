@@ -38,12 +38,12 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
 .hero-title .sub { display: block; font-family: var(--body); font-size: clamp(18px, 3vw, 38px); font-weight: 700; color: var(--text-dim); letter-spacing: -0.01em; margin-top: 10px; }
 .hero-desc { max-width: 580px; font-size: 15px; line-height: 1.85; color: var(--text-dim); margin-bottom: 48px; opacity: 0; animation: fadeUp 0.8s ease 0.35s forwards; }
 .hero-tags { display: flex; gap: 8px; flex-wrap: wrap; opacity: 0; animation: fadeUp 0.8s ease 0.45s forwards; }
-.tag { font-family: var(--mono); font-size: 10px; padding: 5px 12px; border-radius: 4px; border: 1px solid var(--line); color: var(--text-muted); letter-spacing: 0.06em; }
+.tag { font-family: var(--mono); font-size: 10px; padding: 5px 12px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.55); letter-spacing: 0.06em; }
 .tag.green { border-color: rgba(0,232,162,0.3); color: var(--green); }
 
 /* Section */
 .section { padding: 80px 48px; }
-.section-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 48px; display: flex; align-items: center; gap: 16px; }
+.section-label { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 48px; display: flex; align-items: center; gap: 16px; }
 .section-label::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 
 /* Timeline */
@@ -89,26 +89,26 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
 .phil-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
 .phil-title { font-family: var(--display); font-size: clamp(36px, 6vw, 72px); line-height: 0.95; margin-bottom: 20px; }
 .phil-title .accent { color: var(--green); }
-.phil-body { font-size: 14px; color: var(--text-dim); line-height: 1.9; }
+.phil-body { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.9; }
 .phil-item { padding: 18px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 28px 1fr; gap: 14px; }
 .phil-item:last-child { border-bottom: none; }
 .phil-num { font-family: var(--mono); font-size: 11px; color: var(--green); padding-top: 2px; }
-.phil-text { font-size: 13px; color: var(--text-dim); line-height: 1.75; }
-.phil-text strong { color: var(--text); font-weight: 500; }
+.phil-text { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.75; }
+.phil-text strong { color: rgba(255,255,255,0.92); font-weight: 500; }
 
 /* Thesis */
 .thesis { padding: 80px 48px; }
 .thesis-box { border: 1px solid var(--line); border-radius: 16px; padding: 48px; position: relative; overflow: hidden; }
 .thesis-box::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,232,162,0.03) 0%, transparent 60%); pointer-events: none; }
 .thesis-label { font-family: var(--mono); font-size: 10px; color: var(--green); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 20px; }
-.thesis-text { font-size: clamp(15px, 2.2vw, 21px); line-height: 1.75; color: var(--text); font-weight: 300; max-width: 740px; }
+.thesis-text { font-size: clamp(15px, 2.2vw, 21px); line-height: 1.75; color: rgba(255,255,255,0.88); font-weight: 300; max-width: 740px; }
 .thesis-text em { color: var(--green); font-style: normal; font-weight: 500; }
 
 /* Footer */
 footer { padding: 48px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-.footer-left { font-family: var(--mono); font-size: 11px; color: var(--text-muted); line-height: 1.9; }
+.footer-left { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.9; }
 .footer-right { display: flex; gap: 8px; flex-wrap: wrap; }
-.footer-tag { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+.footer-tag { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.4); }
 
 /* Sim overlay */
 .sim-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 200; backdrop-filter: blur(4px); align-items: center; justify-content: center; }
@@ -219,8 +219,8 @@ footer { padding: 48px; border-top: 1px solid var(--line); display: flex; justif
         data-en="An advanced version of the PoET spec. Three new propositions: risk-bearing behavior, AI as instrument, and free node mobility as final verification. The network simulator is available in the section below.">
       </div>
       <div class="tl-links">
-        <a href="PoE_Whitepaper_v2_KO.docx" target="_blank" class="tl-btn ko t" data-ko="한국어 다운로드" data-en="Korean Download"></a>
-        <a href="PoE_Whitepaper_v2.docx" target="_blank" class="tl-btn t" data-ko="English Download" data-en="English Download"></a>
+        <a href="PoE_Whitepaper_v2_KO.pdf" target="_blank" class="tl-btn ko t" data-ko="한국어 PDF" data-en="Korean PDF"></a>
+        <a href="PoE_Whitepaper_v2.pdf" target="_blank" class="tl-btn t" data-ko="English PDF" data-en="English PDF"></a>
       </div>
     </div>
 
@@ -272,8 +272,8 @@ footer { padding: 48px; border-top: 1px solid var(--line); display: flex; justif
         data-en="The full document: theoretical foundation, 5-layer protocol architecture, security analysis, and Python simulation code.">
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="PoE_Whitepaper_v2_KO.docx" target="_blank" class="tool-btn btn-outline" style="font-size:10px;">한국어 ↓</a>
-        <a href="PoE_Whitepaper_v2.docx" target="_blank" class="tool-btn btn-outline" style="font-size:10px;">English ↓</a>
+        <a href="PoE_Whitepaper_v2_KO.pdf" target="_blank" class="tool-btn btn-outline" style="font-size:10px;">한국어 →</a>
+        <a href="PoE_Whitepaper_v2.pdf" target="_blank" class="tool-btn btn-outline" style="font-size:10px;">English →</a>
       </div>
     </div>
 
