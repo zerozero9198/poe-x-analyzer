@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoE Oracle Simulator v2 — Proof of Energy</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg: #0a0d14;
+  --bg2: #111520;
+  --bg3: #171c2e;
+  --border: rgba(255,255,255,0.07);
+  --green: #00e8a2;
+  --green-dim: rgba(0,232,162,0.12);
+  --red: #ff4d6d;
+  --red-dim: rgba(255,77,109,0.12);
+  --blue: #4d9eff;
+  --blue-dim: rgba(77,158,255,0.12);
+  --amber: #ffb830;
+  --amber-dim: rgba(255,184,48,0.12);
+  --purple: #b57bee;
+  --purple-dim: rgba(181,123,238,0.12);
+  --text: rgba(255,255,255,0.88);
+  --text-dim: rgba(255,255,255,0.4);
+  --text-muted: rgba(255,255,255,0.18);
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: linear-gradient(rgba(0,232,162,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0,232,162,0.025) 1px, transparent 1px);
+  background-size: 40px 40px; pointer-events: none; z-index: 0;
+}
+
+.wrap { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padding: 32px 20px 80px; }
+
+/* Header */
+.header { margin-bottom: 36px; }
+.header-tag { font-family: var(--mono); font-size: 11px; color: var(--green); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 10px; }
+.header h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; }
+.header h1 span { color: var(--green); }
+.header p { font-size: 13px; color: var(--text-dim); margin-top: 10px; line-height: 1.75; max-width: 580px; }
+
+/* Controls */
+.controls { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+.controls-title { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 18px; }
+.control-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 18px; }
+.control-item label { display: block; font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-bottom: 7px; letter-spacing: 0.04em; line-height: 1.4; }
+.control-item input[type=range] { width: 100%; appearance: none; height: 3px; background: var(--border); border-radius: 2px; outline: none; cursor: pointer; }
+.control-item input[type=range]::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; border-radius: 50%; cursor: pointer; }
+.slider-green::-webkit-slider-thumb { background: var(--green); }
+.slider-red::-webkit-slider-thumb { background: var(--red); }
+.slider-blue::-webkit-slider-thumb { background: var(--blue); }
+.slider-amber::-webkit-slider-thumb { background: var(--amber); }
+.slider-purple::-webkit-slider-thumb { background: var(--purple); }
+.control-val { font-family: var(--mono); font-size: 17px; font-weight: 700; margin-top: 5px; }
+
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; letter-spacing: 0.04em; transition: all 0.15s; }
+.btn-primary { background: var(--green); color: #000; }
+.btn-primary:hover { background: #00ffb3; transform: translateY(-1px); }
+.btn-secondary { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--green); color: var(--green); }
+.btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,77,109,0.2); }
+.btn-danger:hover { background: rgba(255,77,109,0.25); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.speed-row { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.speed-label { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+
+.scenario-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); align-items: center; }
+.scenario-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+.btn-scenario { font-family: var(--mono); font-size: 10px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; transition: all 0.15s; }
+.btn-scenario:hover { border-color: var(--amber); color: var(--amber); }
+.btn-scenario.fail { }
+.btn-scenario.fail:hover { border-color: var(--red); color: var(--red); }
+
+/* Metrics */
+.metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
+.metric { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; position: relative; overflow: hidden; }
+.metric::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.metric.green::before { background: var(--green); }
+.metric.red::before { background: var(--red); }
+.metric.blue::before { background: var(--blue); }
+.metric.amber::before { background: var(--amber); }
+.metric.purple::before { background: var(--purple); }
+.metric-label { font-family: var(--mono); font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 7px; }
+.metric-value { font-family: var(--mono); font-size: 24px; font-weight: 700; }
+.metric.green .metric-value { color: var(--green); }
+.metric.red .metric-value { color: var(--red); }
+.metric.blue .metric-value { color: var(--blue); }
+.metric.amber .metric-value { color: var(--amber); }
+.metric.purple .metric-value { color: var(--purple); }
+.metric-sub { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+
+/* Health */
+.health-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 20px; }
+.health-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 14px; }
+.health-item { }
+.health-item-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-bottom: 6px; }
+.health-bar-bg { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.health-bar-fill { height: 6px; border-radius: 3px; transition: width 0.8s ease, background 0.8s ease; }
+.health-val { font-family: var(--mono); font-size: 13px; font-weight: 600; margin-top: 4px; }
+
+/* Main grid */
+.main-grid { display: grid; grid-template-columns: 1fr 320px; gap: 16px; margin-bottom: 16px; }
+
+/* Nodes */
+.node-grid-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+.section-title { font-family: var(--mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.status-badge { font-family: var(--mono); font-size: 9px; padding: 3px 8px; border-radius: 4px; }
+.badge-running { background: var(--green-dim); color: var(--green); }
+.badge-stopped { background: var(--border); color: var(--text-dim); }
+.node-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; max-height: 360px; overflow-y: auto; }
+.node-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 9px; padding: 10px; transition: all 0.3s; }
+.node-card.honest { border-color: rgba(0,232,162,0.18); }
+.node-card.attacker { border-color: rgba(255,77,109,0.18); }
+.node-card.challenger { border-color: rgba(77,158,255,0.18); }
+.node-card.penalized { animation: shake 0.4s ease; }
+.node-card.rewarded { animation: pulse-green 0.5s ease; }
+.node-card.bankrupt { opacity: 0.4; filter: grayscale(1); }
+.node-type { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+.node-card.honest .node-type { color: var(--green); }
+.node-card.attacker .node-type { color: var(--red); }
+.node-card.challenger .node-type { color: var(--blue); }
+.node-id { font-family: var(--mono); font-size: 11px; font-weight: 600; margin-bottom: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.node-energy-bar { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 5px; overflow: hidden; }
+.node-energy-fill { height: 3px; border-radius: 2px; transition: width 0.5s ease; }
+.node-card.honest .node-energy-fill { background: var(--green); }
+.node-card.attacker .node-energy-fill { background: var(--red); }
+.node-card.challenger .node-energy-fill { background: var(--blue); }
+.node-stats { font-family: var(--mono); font-size: 9px; color: var(--text-dim); }
+.node-stats span { display: block; line-height: 1.6; }
+.node-rep { display: inline-block; font-size: 8px; padding: 2px 5px; border-radius: 3px; margin-top: 3px; }
+.rep-high { background: var(--green-dim); color: var(--green); }
+.rep-mid { background: var(--amber-dim); color: var(--amber); }
+.rep-low { background: var(--red-dim); color: var(--red); }
+
+/* Claim pipeline */
+.pipeline-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+.pipeline-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 12px; }
+.pipeline-col { background: var(--bg3); border-radius: 8px; padding: 10px; min-height: 80px; }
+.pipeline-col-title { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.pipeline-col.submitted .pipeline-col-title { color: var(--text-dim); }
+.pipeline-col.challenge .pipeline-col-title { color: var(--amber); }
+.pipeline-col.true .pipeline-col-title { color: var(--green); }
+.pipeline-col.false .pipeline-col-title { color: var(--red); }
+.claim-chip { font-family: var(--mono); font-size: 9px; padding: 3px 7px; border-radius: 4px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; animation: fadeIn 0.2s ease; }
+.claim-chip.honest { background: rgba(0,232,162,0.08); color: var(--green); border: 1px solid rgba(0,232,162,0.15); }
+.claim-chip.attacker { background: rgba(255,77,109,0.08); color: var(--red); border: 1px solid rgba(255,77,109,0.15); }
+.claim-chip.pending { background: rgba(255,184,48,0.08); color: var(--amber); border: 1px solid rgba(255,184,48,0.15); }
+
+/* Log */
+.log-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; }
+.log-inner { flex: 1; max-height: 360px; overflow-y: auto; font-family: var(--mono); font-size: 10px; line-height: 1.9; }
+.log-inner::-webkit-scrollbar { width: 3px; }
+.log-inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.log-line { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.025); animation: fadeIn 0.2s ease; }
+.log-line.submit { color: var(--blue); }
+.log-line.verify { color: var(--green); }
+.log-line.penalty { color: var(--red); }
+.log-line.reward { color: var(--amber); }
+.log-line.reject { color: var(--text-muted); }
+.log-line.challenge { color: var(--purple); }
+.log-line.info { color: var(--text-muted); }
+.log-time { color: var(--text-muted); margin-right: 6px; }
+
+/* Chart */
+.chart-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+.chart-inner { position: relative; height: 160px; }
+
+/* Report */
+.report-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 20px; display: none; }
+.report-wrap.visible { display: block; animation: fadeIn 0.4s ease; }
+.report-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+.report-winner { display: inline-block; font-family: var(--mono); font-size: 12px; padding: 6px 16px; border-radius: 6px; margin-bottom: 20px; }
+.report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.report-card { background: var(--bg3); border-radius: 10px; padding: 16px; }
+.report-card-title { font-family: var(--mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+.report-card p { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+.report-card ul { padding-left: 16px; }
+.report-card li { font-size: 13px; color: var(--text-dim); line-height: 1.8; }
+.report-insight { background: var(--bg3); border-left: 2px solid var(--green); border-radius: 0 8px 8px 0; padding: 14px 18px; font-size: 13px; color: var(--text-dim); line-height: 1.75; }
+.report-insight.warn { border-color: var(--amber); }
+.report-insight.danger { border-color: var(--red); }
+
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+@keyframes pulse-green { 0%,100%{box-shadow:0 0 0 0 rgba(0,232,162,0)} 50%{box-shadow:0 0 0 8px rgba(0,232,162,0.12)} }
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+@media(max-width:720px) {
+  .main-grid{grid-template-columns:1fr}
+  .metrics{grid-template-columns:repeat(3,1fr)}
+  .control-grid{grid-template-columns:repeat(3,1fr)}
+  .pipeline-grid{grid-template-columns:repeat(2,1fr)}
+  .report-grid{grid-template-columns:1fr}
+  .header h1{font-size:26px}
+  .health-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div class="header-tag">// Proof of Energy · Oracle Simulator v2.0</div>
+  <h1>PoE Network <span>Simulator</span></h1>
+  <p>주장은 즉시 확정되지 않습니다. 제출 → 챌린지 → 최종 확정까지의 과정을 거칩니다. 챌린저도 비용을 부담하며, 틀린 챌린지는 손해를 봅니다. 네트워크가 어떤 조건에서 진실로 수렴하고, 어떤 조건에서 실패하는지 직접 확인하세요.</p>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <div class="controls-title">// 시뮬레이션 파라미터</div>
+  <div class="control-grid">
+    <div class="control-item">
+      <label>정직 노드</label>
+      <input type="range" id="honestCount" class="slider-green" min="2" max="16" value="6" oninput="updateVal('honestCount','honestVal')">
+      <div class="control-val" style="color:var(--green)" id="honestVal">6</div>
+    </div>
+    <div class="control-item">
+      <label>공격 노드</label>
+      <input type="range" id="attackCount" class="slider-red" min="1" max="10" value="2" oninput="updateVal('attackCount','attackVal')">
+      <div class="control-val" style="color:var(--red)" id="attackVal">2</div>
+    </div>
+    <div class="control-item">
+      <label>챌린저 노드</label>
+      <input type="range" id="challengerCount" class="slider-blue" min="1" max="8" value="2" oninput="updateVal('challengerCount','challengerVal')">
+      <div class="control-val" style="color:var(--blue)" id="challengerVal">2</div>
+    </div>
+    <div class="control-item">
+      <label>챌린지 비용<br>(stake의 %)</label>
+      <input type="range" id="challengeCost" class="slider-amber" min="5" max="60" value="20" oninput="updateVal('challengeCost','challengeCostVal','%')">
+      <div class="control-val" style="color:var(--amber)" id="challengeCostVal">20%</div>
+    </div>
+    <div class="control-item">
+      <label>챌린지 성공률</label>
+      <input type="range" id="challengeSuccessRate" class="slider-purple" min="30" max="100" value="75" oninput="updateVal('challengeSuccessRate','challengeSuccessVal','%')">
+      <div class="control-val" style="color:var(--purple)" id="challengeSuccessVal">75%</div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="btnStart" onclick="startSim()">▶ 시작</button>
+    <button class="btn btn-secondary" id="btnPause" onclick="pauseSim()" disabled>⏸ 일시정지</button>
+    <button class="btn btn-secondary" id="btnReport" onclick="showReport()" disabled>📋 리포트</button>
+    <button class="btn btn-danger" id="btnReset" onclick="resetSim()">↺ 초기화</button>
+    <div class="speed-row">
+      <span class="speed-label">속도</span>
+      <input type="range" id="speedControl" min="1" max="5" value="3" style="width:72px" oninput="updateSpeed()">
+      <span class="speed-label" id="speedLabel">x3</span>
+    </div>
+  </div>
+  <div class="scenario-row">
+    <span class="scenario-label">✓ 성공:</span>
+    <button class="btn-scenario" onclick="loadScenario('honest')">정직 다수</button>
+    <button class="btn-scenario" onclick="loadScenario('challenger')">챌린저 시장</button>
+    <button class="btn-scenario" onclick="loadScenario('decay')">평판 감쇠</button>
+    <span class="scenario-label" style="margin-left:8px">✗ 실패:</span>
+    <button class="btn-scenario fail" onclick="loadScenario('attack51')">51% 공격</button>
+    <button class="btn-scenario fail" onclick="loadScenario('noChallenger')">챌린저 부족</button>
+    <button class="btn-scenario fail" onclick="loadScenario('spamChallenge')">스팸 챌린지</button>
+  </div>
+</div>
+
+<!-- Metrics -->
+<div class="metrics">
+  <div class="metric green">
+    <div class="metric-label">확정 진실</div>
+    <div class="metric-value" id="m-valid">0</div>
+    <div class="metric-sub">finalized true</div>
+  </div>
+  <div class="metric red">
+    <div class="metric-label">확정 거짓</div>
+    <div class="metric-value" id="m-falsified">0</div>
+    <div class="metric-sub">finalized false</div>
+  </div>
+  <div class="metric amber">
+    <div class="metric-label">검증 대기</div>
+    <div class="metric-value" id="m-pending">0</div>
+    <div class="metric-sub">under challenge</div>
+  </div>
+  <div class="metric purple">
+    <div class="metric-label">페널티 풀</div>
+    <div class="metric-value" id="m-pool">0</div>
+    <div class="metric-sub">redistributed</div>
+  </div>
+  <div class="metric blue">
+    <div class="metric-label">잘못된 챌린지</div>
+    <div class="metric-value" id="m-wrongchallenge">0</div>
+    <div class="metric-sub">failed challenges</div>
+  </div>
+</div>
+
+<!-- Network Health — 3분리 -->
+<div class="health-wrap">
+  <div class="section-title">// 네트워크 상태 <span class="status-badge badge-stopped" id="simStatus">STOPPED</span></div>
+  <div class="health-grid">
+    <div class="health-item">
+      <div class="health-item-label">Observed Integrity — 확정된 진실 비율</div>
+      <div class="health-bar-bg"><div class="health-bar-fill" id="bar-integrity" style="width:100%;background:var(--green)"></div></div>
+      <div class="health-val" style="color:var(--green)" id="val-integrity">100%</div>
+    </div>
+    <div class="health-item">
+      <div class="health-item-label">Latent Risk — 미적발 거짓 추정</div>
+      <div class="health-bar-bg"><div class="health-bar-fill" id="bar-risk" style="width:0%;background:var(--red)"></div></div>
+      <div class="health-val" style="color:var(--red)" id="val-risk">0%</div>
+    </div>
+    <div class="health-item">
+      <div class="health-item-label">Challenge Efficiency — 챌린지 효율</div>
+      <div class="health-bar-bg"><div class="health-bar-fill" id="bar-efficiency" style="width:100%;background:var(--blue)"></div></div>
+      <div class="health-val" style="color:var(--blue)" id="val-efficiency">100%</div>
+    </div>
+  </div>
+</div>
+
+<!-- Claim Pipeline -->
+<div class="pipeline-wrap">
+  <div class="section-title">// 주장 검증 파이프라인</div>
+  <div class="pipeline-grid">
+    <div class="pipeline-col submitted">
+      <div class="pipeline-col-title">① Submitted</div>
+      <div id="pipe-submitted"></div>
+    </div>
+    <div class="pipeline-col challenge">
+      <div class="pipeline-col-title">② Under Challenge</div>
+      <div id="pipe-challenge"></div>
+    </div>
+    <div class="pipeline-col true">
+      <div class="pipeline-col-title">③ Finalized True</div>
+      <div id="pipe-true"></div>
+    </div>
+    <div class="pipeline-col false">
+      <div class="pipeline-col-title">④ Finalized False</div>
+      <div id="pipe-false"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart + Log -->
+<div class="main-grid">
+  <div>
+    <div class="chart-wrap">
+      <div class="section-title">// 노드 유형별 평균 에너지</div>
+      <div class="chart-inner"><canvas id="flowChart"></canvas></div>
+    </div>
+    <div class="node-grid-wrap">
+      <div class="section-title">// 노드 상태</div>
+      <div class="node-grid" id="nodeGrid"></div>
+    </div>
+  </div>
+  <div class="log-wrap">
+    <div class="section-title">// 이벤트 로그</div>
+    <div class="log-inner" id="logInner"></div>
+  </div>
+</div>
+
+<!-- Report -->
+<div class="report-wrap" id="reportWrap">
+  <div class="report-title">📊 시뮬레이션 결과 리포트</div>
+  <div id="report-winner-badge" class="report-winner"></div>
+  <div class="report-grid" id="reportGrid"></div>
+  <div class="report-insight" id="reportInsight"></div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ── State ─────────────────────────────────────────────────────────────────
+let nodes = [], claims = [], penaltyPool = 0;
+let validCount = 0, falsifiedCount = 0, wrongChallengeCount = 0;
+let simInterval = null, simTick = 0, speed = 3;
+let flowChart = null;
+const BASE_SPEED = 1100;
+const PENALTY_MULT = 3.0, REWARD_FRAC = 0.5, REP_DECAY = 0.6;
+
+// Claim states: 'submitted' | 'under_challenge' | 'true' | 'false'
+let pipelineCounts = { submitted: 0, under_challenge: 0, true: 0, false: 0 };
+
+// Stats for report
+let stats = { attackerTotalPenalty: 0, challengerTotalReward: 0, challengerTotalLoss: 0, honestWronglyCharged: 0, totalChallenges: 0, successfulChallenges: 0 };
+
+function getParam(id) { return parseInt(document.getElementById(id).value); }
+
+// ── Node factory ──────────────────────────────────────────────────────────
+function makeNode(id, type, energy) {
+  return { id, type, energy, initialEnergy: energy, reputation: 1.0, submitted: 0, falsified: 0, challengesMade: 0, challengesFailed: 0 };
+}
+
+function stakeReq(node, dataLen) {
+  return (dataLen * 4.0) / node.reputation;
+}
+
+// ── Setup ─────────────────────────────────────────────────────────────────
+function buildNodes() {
+  nodes = [];
+  const h = getParam('honestCount'), a = getParam('attackCount'), c = getParam('challengerCount');
+  for (let i = 0; i < h; i++) nodes.push(makeNode(`H-${String(i+1).padStart(2,'0')}`, 'honest', 1000));
+  for (let i = 0; i < a; i++) nodes.push(makeNode(`A-${String(i+1).padStart(2,'0')}`, 'attacker', 900));
+  for (let i = 0; i < c; i++) nodes.push(makeNode(`C-${String(i+1).padStart(2,'0')}`, 'challenger', 700));
+}
+
+function resetSim() {
+  clearInterval(simInterval); simInterval = null;
+  claims = []; penaltyPool = 0; validCount = 0; falsifiedCount = 0; wrongChallengeCount = 0; simTick = 0;
+  pipelineCounts = { submitted: 0, under_challenge: 0, true: 0, false: 0 };
+  stats = { attackerTotalPenalty: 0, challengerTotalReward: 0, challengerTotalLoss: 0, honestWronglyCharged: 0, totalChallenges: 0, successfulChallenges: 0 };
+  buildNodes();
+  renderAll();
+  document.getElementById('logInner').innerHTML = '';
+  document.getElementById('reportWrap').classList.remove('visible');
+  setStatus('STOPPED', false);
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnPause').disabled = true;
+  document.getElementById('btnReport').disabled = true;
+  if (flowChart) { flowChart.destroy(); flowChart = null; }
+  initChart();
+  addLog('info', '시뮬레이터 초기화됨 — v2.0');
+  updatePipeline();
+}
+
+function startSim() {
+  if (simInterval) return;
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnPause').disabled = false;
+  document.getElementById('btnReport').disabled = false;
+  setStatus('RUNNING', true);
+  simInterval = setInterval(tick, BASE_SPEED / speed);
+}
+
+function pauseSim() {
+  clearInterval(simInterval); simInterval = null;
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnPause').disabled = true;
+  setStatus('PAUSED', false);
+}
+
+function updateSpeed() {
+  speed = parseInt(document.getElementById('speedControl').value);
+  document.getElementById('speedLabel').textContent = 'x' + speed;
+  if (simInterval) { clearInterval(simInterval); simInterval = setInterval(tick, BASE_SPEED / speed); }
+}
+
+function setStatus(text, running) {
+  const el = document.getElementById('simStatus');
+  el.textContent = text;
+  el.className = 'status-badge ' + (running ? 'badge-running' : 'badge-stopped');
+}
+
+// ── Tick ──────────────────────────────────────────────────────────────────
+function tick() {
+  simTick++;
+
+  // Step 1: Advance pending claims (some get challenged, some finalize)
+  advanceClaims();
+
+  // Step 2: Pick actor
+  const actor = nodes[Math.floor(Math.random() * nodes.length)];
+
+  if (actor.type === 'challenger') {
+    attemptChallenge(actor);
+  } else {
+    submitClaim(actor);
+  }
+
+  renderAll();
+  updateChart();
+  updateHealth();
+  updatePipeline();
+}
+
+function submitClaim(actor) {
+  const dataLen = 10 + Math.floor(Math.random() * 20);
+  const stake = stakeReq(actor, dataLen);
+  if (actor.energy < stake) {
+    addLog('reject', `[REJECT] ${actor.id} 에너지 부족 (${actor.energy.toFixed(0)})`);
+    return;
+  }
+  actor.energy -= stake;
+  actor.submitted++;
+
+  const isFalse = actor.type === 'attacker';
+  const claim = { id: `C${simTick}`, nodeId: actor.id, stake, isFalse, state: 'submitted', tick: simTick, nodeType: actor.type };
+  claims.push(claim);
+  pipelineCounts.submitted++;
+
+  if (isFalse) {
+    addLog('challenge', `[SUBMIT] ${actor.id} 거짓 주장 → stake ${stake.toFixed(1)}`);
+  } else {
+    addLog('submit', `[SUBMIT] ${actor.id} 정직 주장 → stake ${stake.toFixed(1)}`);
+  }
+}
+
+function advanceClaims() {
+  // Submitted → Under Challenge (random chance per tick)
+  claims.filter(c => c.state === 'submitted').forEach(c => {
+    if (Math.random() < 0.25) {
+      c.state = 'under_challenge';
+      pipelineCounts.submitted = Math.max(0, pipelineCounts.submitted - 1);
+      pipelineCounts.under_challenge++;
+      addLog('challenge', `[CHALLENGE] ${c.id} 검증 대기 → Under Challenge`);
+    }
+  });
+
+  // Under Challenge → Finalize (after some ticks)
+  claims.filter(c => c.state === 'under_challenge' && simTick - c.tick > 4).forEach(c => {
+    finalizeClaim(c);
+  });
+
+  // Cap pipeline display
+  if (claims.length > 120) claims.splice(0, 20);
+}
+
+function finalizeClaim(claim) {
+  const node = nodes.find(n => n.id === claim.nodeId);
+  if (!node) return;
+
+  if (claim.isFalse) {
+    // False claim gets caught (with some miss rate based on challengeSuccessRate)
+    const successRate = getParam('challengeSuccessRate') / 100;
+    if (Math.random() < successRate) {
+      // Correctly identified as false
+      applyPenalty(node, claim, null);
+      claim.state = 'false';
+      pipelineCounts.under_challenge = Math.max(0, pipelineCounts.under_challenge - 1);
+      pipelineCounts.false++;
+      falsifiedCount++;
+      document.getElementById('m-falsified').textContent = falsifiedCount;
+    } else {
+      // Missed — false claim slips through as "true"
+      claim.state = 'true'; // wrongly finalized
+      pipelineCounts.under_challenge = Math.max(0, pipelineCounts.under_challenge - 1);
+      pipelineCounts.true++;
+      validCount++;
+      addLog('reject', `[MISSED] ${claim.id} 거짓 주장 미적발 — 네트워크 위험 누적`);
+      document.getElementById('m-valid').textContent = validCount;
+    }
+  } else {
+    // Honest claim finalizes as true
+    claim.state = 'true';
+    pipelineCounts.under_challenge = Math.max(0, pipelineCounts.under_challenge - 1);
+    pipelineCounts.true++;
+    validCount++;
+    addLog('verify', `[FINALIZED] ${claim.id} → True ✓`);
+    document.getElementById('m-valid').textContent = validCount;
+  }
+}
+
+function attemptChallenge(challenger) {
+  // Find a claim under challenge to act on
+  const targets = claims.filter(c => c.state === 'under_challenge');
+  if (targets.length === 0) return;
+
+  const target = targets[Math.floor(Math.random() * targets.length)];
+  const challengeCostPct = getParam('challengeCost') / 100;
+  const challengeCost = target.stake * challengeCostPct;
+
+  if (challenger.energy < challengeCost) {
+    addLog('reject', `[REJECT] ${challenger.id} 챌린지 비용 부족`);
+    return;
+  }
+
+  challenger.energy -= challengeCost;
+  challenger.challengesMade++;
+  stats.totalChallenges++;
+
+  if (target.isFalse) {
+    // Correct challenge
+    const reward = target.stake * REWARD_FRAC;
+    challenger.energy += reward;
+    stats.challengerTotalReward += reward;
+    stats.successfulChallenges++;
+    addLog('reward', `[CHALLENGE ✓] ${challenger.id} 거짓 적발 +${reward.toFixed(1)} E`);
+    markNodeAnim(challenger.id, 'rewarded');
+  } else {
+    // Wrong challenge — honest node was attacked
+    challenger.challengesFailed++;
+    wrongChallengeCount++;
+    stats.challengerTotalLoss += challengeCost;
+    stats.honestWronglyCharged++;
+    addLog('penalty', `[CHALLENGE ✗] ${challenger.id} 오탐 — 비용 ${challengeCost.toFixed(1)} E 손실`);
+    markNodeAnim(challenger.id, 'penalized');
+    document.getElementById('m-wrongchallenge').textContent = wrongChallengeCount;
+  }
+}
+
+function applyPenalty(node, block, challenger) {
+  const penalty = block.stake * PENALTY_MULT;
+  const actual = Math.min(penalty, node.energy + block.stake);
+  node.energy -= actual;
+  node.reputation *= REP_DECAY;
+  node.falsified++;
+  stats.attackerTotalPenalty += actual;
+
+  if (challenger) {
+    const reward = actual * REWARD_FRAC;
+    challenger.energy += reward;
+    penaltyPool += actual - reward;
+    stats.challengerTotalReward += reward;
+    addLog('reward', `[REWARD] ${challenger.id} +${reward.toFixed(1)} E`);
+    markNodeAnim(challenger.id, 'rewarded');
+  } else {
+    penaltyPool += actual;
+  }
+
+  addLog('penalty', `[PENALTY] ${node.id} -${actual.toFixed(1)} E | rep→${node.reputation.toFixed(2)}`);
+  markNodeAnim(node.id, 'penalized');
+  document.getElementById('m-pool').textContent = Math.round(penaltyPool);
+}
+
+// ── Scenarios ─────────────────────────────────────────────────────────────
+function loadScenario(type) {
+  resetSim();
+  const set = (h, a, c, cost, sr) => {
+    document.getElementById('honestCount').value = h;
+    document.getElementById('attackCount').value = a;
+    document.getElementById('challengerCount').value = c;
+    document.getElementById('challengeCost').value = cost;
+    document.getElementById('challengeSuccessRate').value = sr;
+    ['honestCount','attackCount','challengerCount'].forEach(id => document.getElementById(id.replace('Count','Val')).textContent = document.getElementById(id).value);
+    document.getElementById('challengeCostVal').textContent = cost + '%';
+    document.getElementById('challengeSuccessVal').textContent = sr + '%';
+  };
+  if (type === 'honest')        { set(12,1,2,20,85); addLog('info','시나리오: 정직 다수 — 안정적 네트워크'); }
+  else if (type === 'challenger'){ set(6,4,7,15,80); addLog('info','시나리오: 챌린저 시장 — 감시자가 충분할 때'); }
+  else if (type === 'decay')     { set(4,5,3,20,75); addLog('info','시나리오: 평판 감쇠 — 반복 공격자의 자멸'); }
+  else if (type === 'attack51')  { set(3,8,1,20,60); addLog('info','시나리오: 51% 공격 — 공격 노드 다수'); }
+  else if (type === 'noChallenger'){ set(8,5,1,20,70); addLog('info','시나리오: 챌린저 부족 — 자정작용 실패'); }
+  else if (type === 'spamChallenge'){ set(6,3,6,5,40); addLog('info','시나리오: 스팸 챌린지 — 비용 낮고 성공률 낮을 때'); }
+  buildNodes(); renderAll(); startSim();
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderNodes();
+  renderMetrics();
+}
+
+function renderNodes(highlightId) {
+  const grid = document.getElementById('nodeGrid');
+  grid.innerHTML = '';
+  nodes.forEach(n => {
+    const pct = Math.max(0, Math.min(100, (n.energy / n.initialEnergy) * 100));
+    const repClass = n.reputation > 0.75 ? 'rep-high' : n.reputation > 0.4 ? 'rep-mid' : 'rep-low';
+    const repLabel = n.reputation > 0.75 ? 'REP HIGH' : n.reputation > 0.4 ? 'REP MID' : 'REP LOW';
+    const bankrupt = n.energy <= 0;
+    const div = document.createElement('div');
+    div.className = `node-card ${n.type}${bankrupt ? ' bankrupt' : ''}`;
+    div.id = `node-${n.id}`;
+    div.innerHTML = `
+      <div class="node-type">${n.type === 'honest' ? '✓ HONEST' : n.type === 'attacker' ? '✗ ATTACK' : '⚡ CHLNG'}</div>
+      <div class="node-id">${n.id}</div>
+      <div class="node-energy-bar"><div class="node-energy-fill" style="width:${pct}%"></div></div>
+      <div class="node-stats">
+        <span>${n.energy.toFixed(0)} E</span>
+        <span>${n.submitted}제출 · ${n.falsified}적발</span>
+        ${n.type==='challenger'?`<span>${n.challengesMade}챌린지</span>`:''}
+      </div>
+      <span class="node-rep ${repClass}">${repLabel}</span>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+function markNodeAnim(nodeId, animClass) {
+  const el = document.getElementById(`node-${nodeId}`);
+  if (!el) return;
+  el.classList.add(animClass);
+  setTimeout(() => el.classList.remove(animClass), 500);
+}
+
+function renderMetrics() {
+  document.getElementById('m-pending').textContent = pipelineCounts.under_challenge;
+}
+
+function updatePipeline() {
+  const renderPipe = (id, items, maxShow) => {
+    const el = document.getElementById(id);
+    el.innerHTML = '';
+    const show = items.slice(-maxShow);
+    show.forEach(c => {
+      const chip = document.createElement('div');
+      chip.className = `claim-chip ${c.state === 'under_challenge' ? 'pending' : c.isFalse ? 'attacker' : 'honest'}`;
+      chip.innerHTML = `<span>${c.id}</span><span>${c.stake.toFixed(0)}E</span>`;
+      el.appendChild(chip);
+    });
+  };
+  renderPipe('pipe-submitted', claims.filter(c => c.state === 'submitted'), 5);
+  renderPipe('pipe-challenge', claims.filter(c => c.state === 'under_challenge'), 5);
+  renderPipe('pipe-true', claims.filter(c => c.state === 'true').slice(-5), 5);
+  renderPipe('pipe-false', claims.filter(c => c.state === 'false').slice(-5), 5);
+}
+
+function addLog(type, msg) {
+  const log = document.getElementById('logInner');
+  const time = String(simTick).padStart(3, '0');
+  const div = document.createElement('div');
+  div.className = `log-line ${type}`;
+  div.innerHTML = `<span class="log-time">[${time}]</span>${msg}`;
+  log.insertBefore(div, log.firstChild);
+  while (log.children.length > 100) log.removeChild(log.lastChild);
+}
+
+// ── Health ────────────────────────────────────────────────────────────────
+function updateHealth() {
+  const total = validCount + falsifiedCount;
+  const integrity = total === 0 ? 100 : Math.round((validCount / total) * 100);
+
+  // Latent risk: false claims that slipped through as "true"
+  const slipped = claims.filter(c => c.isFalse && c.state === 'true').length;
+  const latentRisk = total === 0 ? 0 : Math.min(100, Math.round((slipped / Math.max(1, total)) * 100));
+
+  // Challenge efficiency
+  const efficiency = stats.totalChallenges === 0 ? 100 : Math.round((stats.successfulChallenges / stats.totalChallenges) * 100);
+
+  setBar('bar-integrity', 'val-integrity', integrity, 'var(--green)', 'var(--amber)', 'var(--red)');
+  setBar('bar-risk', 'val-risk', latentRisk, 'var(--red)', 'var(--amber)', 'var(--green)', true);
+  setBar('bar-efficiency', 'val-efficiency', efficiency, 'var(--blue)', 'var(--amber)', 'var(--red)');
+}
+
+function setBar(barId, valId, pct, high, mid, low, invert) {
+  const bar = document.getElementById(barId);
+  const val = document.getElementById(valId);
+  bar.style.width = pct + '%';
+  const color = invert
+    ? (pct > 20 ? low : pct > 10 ? mid : high)
+    : (pct > 70 ? high : pct > 40 ? mid : low);
+  bar.style.background = color;
+  val.style.color = color;
+  val.textContent = pct + '%';
+}
+
+// ── Chart ─────────────────────────────────────────────────────────────────
+function initChart() {
+  const ctx = document.getElementById('flowChart').getContext('2d');
+  flowChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { label: '정직 노드', data: [], borderColor: 'rgba(0,232,162,0.8)', backgroundColor: 'rgba(0,232,162,0.04)', borderWidth: 1.5, tension: 0.4, pointRadius: 0, fill: true },
+        { label: '공격 노드', data: [], borderColor: 'rgba(255,77,109,0.8)', backgroundColor: 'rgba(255,77,109,0.04)', borderWidth: 1.5, tension: 0.4, pointRadius: 0, fill: true },
+        { label: '챌린저', data: [], borderColor: 'rgba(77,158,255,0.8)', backgroundColor: 'rgba(77,158,255,0.04)', borderWidth: 1.5, tension: 0.4, pointRadius: 0, fill: false },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: { legend: { labels: { color: 'rgba(255,255,255,0.35)', font: { size: 10, family: 'JetBrains Mono' }, boxWidth: 10 } } },
+      scales: {
+        x: { ticks: { color: 'rgba(255,255,255,0.25)', font: { size: 9 }, maxTicksLimit: 8 }, grid: { color: 'rgba(255,255,255,0.03)' } },
+        y: { ticks: { color: 'rgba(255,255,255,0.25)', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.03)' } }
+      }
+    }
+  });
+}
+
+function updateChart() {
+  if (!flowChart) return;
+  const avg = arr => arr.length ? Math.round(arr.reduce((s,n)=>s+n.energy,0)/arr.length) : 0;
+  flowChart.data.labels.push(simTick);
+  flowChart.data.datasets[0].data.push(avg(nodes.filter(n=>n.type==='honest')));
+  flowChart.data.datasets[1].data.push(avg(nodes.filter(n=>n.type==='attacker')));
+  flowChart.data.datasets[2].data.push(avg(nodes.filter(n=>n.type==='challenger')));
+  if (flowChart.data.labels.length > 60) {
+    flowChart.data.labels.shift();
+    flowChart.data.datasets.forEach(d => d.data.shift());
+  }
+  flowChart.update('none');
+}
+
+// ── Report ────────────────────────────────────────────────────────────────
+function showReport() {
+  const total = validCount + falsifiedCount;
+  const integrity = total === 0 ? 100 : Math.round((validCount / total) * 100);
+  const efficiency = stats.totalChallenges === 0 ? 100 : Math.round((stats.successfulChallenges / stats.totalChallenges) * 100);
+  const slipped = claims.filter(c => c.isFalse && c.state === 'true').length;
+  const aNodes = nodes.filter(n=>n.type==='attacker');
+  const avgAttackRep = aNodes.length ? (aNodes.reduce((s,n)=>s+n.reputation,0)/aNodes.length).toFixed(2) : 'N/A';
+  const bankruptAttackers = aNodes.filter(n=>n.energy<=0).length;
+
+  // Determine winner
+  let winner, winnerStyle;
+  if (integrity > 75 && efficiency > 60) {
+    winner = '✓ 정직 노드 / 챌린저 시스템 승리'; winnerStyle = 'background:var(--green-dim);color:var(--green);border:1px solid rgba(0,232,162,0.3)';
+  } else if (slipped > total * 0.3) {
+    winner = '✗ 공격 노드 우세 — 거짓 주장 다수 통과'; winnerStyle = 'background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,109,0.3)';
+  } else {
+    winner = '△ 교착 상태 — 시스템 불안정'; winnerStyle = 'background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,184,48,0.3)';
+  }
+
+  document.getElementById('report-winner-badge').textContent = winner;
+  document.getElementById('report-winner-badge').style.cssText += winnerStyle;
+
+  // Causes
+  const causes = [];
+  if (nodes.filter(n=>n.type==='challenger').length < 2) causes.push('챌린저 수 부족으로 자정작용 약화');
+  if (efficiency < 50) causes.push('챌린지 성공률 저하 — 스팸 챌린지 발생 가능성');
+  if (slipped > 3) causes.push(`${slipped}개 거짓 주장이 미적발 통과 (Latent Risk 누적)`);
+  if (bankruptAttackers > 0) causes.push(`공격 노드 ${bankruptAttackers}개 에너지 고갈 — 자멸`);
+  if (stats.honestWronglyCharged > 0) causes.push(`정직 노드 ${stats.honestWronglyCharged}회 오탐 피해`);
+  if (causes.length === 0) causes.push('특이 사항 없음 — 네트워크 안정 운영');
+
+  const grid = document.getElementById('reportGrid');
+  grid.innerHTML = `
+    <div class="report-card">
+      <div class="report-card-title">핵심 지표</div>
+      <p>네트워크 정직도: <strong style="color:var(--green)">${integrity}%</strong><br>
+      챌린지 효율: <strong style="color:var(--blue)">${efficiency}%</strong><br>
+      미적발 거짓: <strong style="color:var(--red)">${slipped}건</strong><br>
+      페널티 누적: <strong style="color:var(--amber)">${Math.round(penaltyPool)} E</strong><br>
+      공격자 평균 평판: <strong style="color:var(--red)">${avgAttackRep}</strong></p>
+    </div>
+    <div class="report-card">
+      <div class="report-card-title">원인 분석</div>
+      <ul>${causes.map(c=>`<li>${c}</li>`).join('')}</ul>
+    </div>
+    <div class="report-card">
+      <div class="report-card-title">챌린저 경제</div>
+      <p>총 챌린지 시도: ${stats.totalChallenges}회<br>
+      성공: ${stats.successfulChallenges}회<br>
+      오탐 손실: ${stats.challengerTotalLoss.toFixed(1)} E<br>
+      총 보상: ${stats.challengerTotalReward.toFixed(1)} E<br>
+      순이익: <strong style="color:${stats.challengerTotalReward - stats.challengerTotalLoss > 0 ? 'var(--green)':'var(--red)'}">${(stats.challengerTotalReward - stats.challengerTotalLoss).toFixed(1)} E</strong></p>
+    </div>
+    <div class="report-card">
+      <div class="report-card-title">프로토콜 제안</div>
+      <p>${getProtocolSuggestion(integrity, efficiency, slipped)}</p>
+    </div>
+  `;
+
+  const insightEl = document.getElementById('reportInsight');
+  insightEl.textContent = getInsightText(integrity, efficiency, slipped, bankruptAttackers, total);
+  insightEl.className = 'report-insight' + (integrity > 70 ? '' : integrity > 40 ? ' warn' : ' danger');
+
+  document.getElementById('reportWrap').classList.add('visible');
+  document.getElementById('reportWrap').scrollIntoView({ behavior: 'smooth' });
+}
+
+function getProtocolSuggestion(integrity, efficiency, slipped) {
+  if (efficiency < 50) return '챌린지 비용을 높이고 보상률을 올려 스팸 챌린지를 억제하세요. 정확한 챌린지에만 높은 보상이 주어질 때 감시 품질이 올라갑니다.';
+  if (slipped > 5) return '챌린지 성공률이 낮습니다. 탐지 레이어(Layer 3)를 강화하거나 챌린저 수를 늘려 미적발 거짓 주장을 줄이세요.';
+  if (integrity > 80) return '현재 파라미터가 안정적입니다. 챌린저 수를 줄이거나 공격 노드를 늘려 한계점을 찾아보세요.';
+  return '챌린저 수와 챌린지 성공률의 균형이 핵심입니다. 두 값을 동시에 조정해보세요.';
+}
+
+function getInsightText(integrity, efficiency, slipped, bankruptAttackers, total) {
+  if (integrity > 80 && efficiency > 70) return `네트워크가 안정적으로 작동했습니다. 챌린저 시스템이 공격 노드를 효과적으로 억제했으며, 공격자 ${bankruptAttackers}개 노드가 에너지를 소진했습니다. PoE의 자정작용이 확인되었습니다.`;
+  if (slipped > total * 0.3) return `공격 노드가 우세했습니다. 챌린저 부족 또는 낮은 탐지 성공률로 인해 ${slipped}건의 거짓 주장이 미적발 통과했습니다. 챌린저 수를 늘리거나 챌린지 비용을 조정하세요.`;
+  if (efficiency < 40) return `스팸 챌린지 문제가 발생했습니다. 챌린지 비용이 낮아 무분별한 챌린지가 네트워크 효율을 떨어뜨렸습니다. PoE는 감시자도 규율받아야 함을 보여줍니다.`;
+  return `시스템이 교착 상태에 있습니다. 공격과 방어가 균형을 이루고 있습니다. 파라미터를 조정해 어느 방향으로 수렴하는지 확인해보세요.`;
+}
+
+function updateVal(sliderId, valId, suffix) {
+  document.getElementById(valId).textContent = document.getElementById(sliderId).value + (suffix||'');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+resetSim();
+</script>
+</body>
+</html>

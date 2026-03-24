@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proof of Energy — Node Capitalism</title>
+<meta name="description" content="노드자본주의 철학부터 PoE 오라클 프로토콜까지 — by ZeroZero">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+:root {
+  --bg: #08090d; --bg2: #0f1118; --bg3: #161824;
+  --line: rgba(255,255,255,0.06);
+  --green: #00e8a2; --green-dim: rgba(0,232,162,0.08);
+  --red: #ff4455; --amber: #f5a623; --blue: #4a9eff;
+  --text: rgba(255,255,255,0.9); --text-dim: rgba(255,255,255,0.42); --text-muted: rgba(255,255,255,0.18);
+  --mono: 'DM Mono', monospace; --display: 'Bebas Neue', sans-serif; --body: 'Noto Sans KR', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--body); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+body::after { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 100; opacity: 0.4; }
+.hr { height: 1px; background: var(--line); }
+
+/* Topbar */
+.topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 14px 40px; background: rgba(8,9,13,0.88); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.topbar-logo { font-family: var(--mono); font-size: 12px; color: var(--green); letter-spacing: 0.12em; }
+.lang-toggle { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.lang-btn { font-family: var(--mono); font-size: 11px; padding: 6px 14px; background: transparent; color: var(--text-dim); border: none; cursor: pointer; transition: all 0.15s; }
+.lang-btn.active { background: var(--green); color: #000; font-weight: 500; }
+
+/* Hero */
+.hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 120px 48px 80px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -200px; right: -200px; width: 600px; height: 600px; background: radial-gradient(circle, rgba(0,232,162,0.05) 0%, transparent 70%); pointer-events: none; }
+.hero-eyebrow { font-family: var(--mono); font-size: 11px; color: var(--green); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 28px; opacity: 0; animation: fadeUp 0.8s ease 0.1s forwards; }
+.hero-title { font-family: var(--display); font-size: clamp(64px, 11vw, 148px); line-height: 0.9; letter-spacing: 0.02em; margin-bottom: 32px; opacity: 0; animation: fadeUp 0.8s ease 0.2s forwards; }
+.hero-title .accent { color: var(--green); }
+.hero-title .sub { display: block; font-family: var(--body); font-size: clamp(18px, 3vw, 38px); font-weight: 700; color: var(--text-dim); letter-spacing: -0.01em; margin-top: 10px; }
+.hero-desc { max-width: 580px; font-size: 15px; line-height: 1.85; color: var(--text-dim); margin-bottom: 48px; opacity: 0; animation: fadeUp 0.8s ease 0.35s forwards; }
+.hero-tags { display: flex; gap: 8px; flex-wrap: wrap; opacity: 0; animation: fadeUp 0.8s ease 0.45s forwards; }
+.tag { font-family: var(--mono); font-size: 10px; padding: 5px 12px; border-radius: 4px; border: 1px solid var(--line); color: var(--text-muted); letter-spacing: 0.06em; }
+.tag.green { border-color: rgba(0,232,162,0.3); color: var(--green); }
+
+/* Section */
+.section { padding: 80px 48px; }
+.section-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 48px; display: flex; align-items: center; gap: 16px; }
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 32px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 8px; bottom: 8px; width: 1px; background: linear-gradient(to bottom, var(--green), rgba(0,232,162,0.08)); }
+.tl-item { position: relative; margin-bottom: 44px; }
+.tl-item:last-child { margin-bottom: 0; }
+.tl-dot { position: absolute; left: -28px; top: 6px; width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--green); background: var(--bg); }
+.tl-dot.filled { background: var(--green); }
+.tl-date { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.1em; margin-bottom: 8px; }
+.tl-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.01em; }
+.tl-desc { font-size: 13px; color: var(--text-dim); line-height: 1.8; margin-bottom: 16px; max-width: 600px; }
+.tl-links { display: flex; gap: 8px; flex-wrap: wrap; }
+.tl-btn { font-family: var(--mono); font-size: 10px; padding: 6px 14px; border-radius: 5px; border: 1px solid var(--line); color: var(--text-dim); text-decoration: none; transition: all 0.15s; letter-spacing: 0.05em; background: transparent; display: inline-block; }
+.tl-btn:hover { border-color: var(--green); color: var(--green); }
+.tl-btn.ko { border-color: rgba(0,232,162,0.25); color: var(--green); }
+
+/* Tools */
+.tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.tool-card { background: var(--bg2); padding: 32px; transition: background 0.2s; position: relative; overflow: hidden; }
+.tool-card:hover { background: var(--bg3); }
+.tool-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; opacity: 0; transition: opacity 0.2s; }
+.tool-card:hover::before { opacity: 1; }
+.tool-card.c1::before { background: var(--green); }
+.tool-card.c2::before { background: var(--blue); }
+.tool-card.c3::before { background: var(--amber); }
+.tool-num { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-bottom: 14px; letter-spacing: 0.1em; }
+.tool-status { display: inline-block; font-family: var(--mono); font-size: 9px; padding: 3px 8px; border-radius: 3px; margin-bottom: 14px; letter-spacing: 0.06em; }
+.status-live { background: rgba(0,232,162,0.1); color: var(--green); }
+.status-v2 { background: rgba(74,158,255,0.1); color: var(--blue); }
+.status-paper { background: rgba(245,166,35,0.1); color: var(--amber); }
+.tool-icon { font-size: 26px; margin-bottom: 14px; }
+.tool-title { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+.tool-desc { font-size: 13px; color: var(--text-dim); line-height: 1.75; margin-bottom: 24px; }
+.tool-btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; font-weight: 500; padding: 10px 18px; border-radius: 7px; text-decoration: none; transition: all 0.15s; letter-spacing: 0.04em; cursor: pointer; border: none; }
+.btn-green { background: var(--green); color: #000; }
+.btn-green:hover { background: #00ffb3; transform: translateY(-1px); }
+.btn-outline { background: transparent; color: var(--text-dim); border: 1px solid var(--line); }
+.btn-outline:hover { border-color: var(--green); color: var(--green); }
+
+/* Philosophy */
+.philosophy { padding: 80px 48px; background: var(--bg2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.phil-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+.phil-title { font-family: var(--display); font-size: clamp(36px, 6vw, 72px); line-height: 0.95; margin-bottom: 20px; }
+.phil-title .accent { color: var(--green); }
+.phil-body { font-size: 14px; color: var(--text-dim); line-height: 1.9; }
+.phil-item { padding: 18px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 28px 1fr; gap: 14px; }
+.phil-item:last-child { border-bottom: none; }
+.phil-num { font-family: var(--mono); font-size: 11px; color: var(--green); padding-top: 2px; }
+.phil-text { font-size: 13px; color: var(--text-dim); line-height: 1.75; }
+.phil-text strong { color: var(--text); font-weight: 500; }
+
+/* Thesis */
+.thesis { padding: 80px 48px; }
+.thesis-box { border: 1px solid var(--line); border-radius: 16px; padding: 48px; position: relative; overflow: hidden; }
+.thesis-box::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,232,162,0.03) 0%, transparent 60%); pointer-events: none; }
+.thesis-label { font-family: var(--mono); font-size: 10px; color: var(--green); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 20px; }
+.thesis-text { font-size: clamp(15px, 2.2vw, 21px); line-height: 1.75; color: var(--text); font-weight: 300; max-width: 740px; }
+.thesis-text em { color: var(--green); font-style: normal; font-weight: 500; }
+
+/* Footer */
+footer { padding: 48px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+.footer-left { font-family: var(--mono); font-size: 11px; color: var(--text-muted); line-height: 1.9; }
+.footer-right { display: flex; gap: 8px; flex-wrap: wrap; }
+.footer-tag { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+
+/* Sim overlay */
+.sim-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 200; backdrop-filter: blur(4px); align-items: center; justify-content: center; }
+.sim-overlay.open { display: flex; }
+.sim-modal { background: var(--bg2); border: 1px solid var(--line); border-radius: 16px; width: 92vw; max-width: 1060px; height: 86vh; overflow: hidden; display: flex; flex-direction: column; }
+.sim-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.sim-modal-title { font-family: var(--mono); font-size: 12px; color: var(--green); letter-spacing: 0.1em; }
+.sim-close { font-family: var(--mono); font-size: 11px; color: var(--text-dim); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 6px 14px; cursor: pointer; transition: all 0.15s; }
+.sim-close:hover { border-color: var(--red); color: var(--red); }
+.sim-frame { flex: 1; border: none; width: 100%; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+@media(max-width: 768px) {
+  .topbar { padding: 12px 20px; }
+  .hero, .section, .philosophy, .thesis { padding-left: 24px; padding-right: 24px; }
+  .thesis-box { padding: 28px; }
+  footer { padding: 32px 24px; }
+  .tools-grid { grid-template-columns: 1fr; }
+  .phil-grid { grid-template-columns: 1fr; gap: 36px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">PoE // Node Capitalism</div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('ko')">한국어</button>
+    <button class="lang-btn" onclick="setLang('en')">English</button>
+  </div>
+</div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-eyebrow t" data-ko="// ZeroZero · 노드자본주의 시리즈" data-en="// ZeroZero · Node Capitalism Series"></div>
+  <h1 class="hero-title">
+    PROOF<br>OF <span class="accent">ENERGY</span>
+    <span class="sub t" data-ko="에너지 증명 — 오라클 프로토콜" data-en="Physics-First Oracle Protocol"></span>
+  </h1>
+  <p class="hero-desc t"
+    data-ko="블록체인은 거래를 탈중앙화했습니다. 하지만 진실은 아직 탈중앙화하지 못했습니다. 노드자본주의 철학에서 출발해, PoE는 물리 에너지의 불가역성을 진실의 앵커로 삼는 오라클 프로토콜을 제안합니다."
+    data-en="Blockchain decentralized transactions. It has not yet decentralized truth. Built on Node Capitalism philosophy, PoE proposes an oracle protocol anchored in the irreversibility of physical energy.">
+  </p>
+  <div class="hero-tags">
+    <span class="tag green">#ProofOfEnergy</span>
+    <span class="tag green">#NodeCapitalism</span>
+    <span class="tag t" data-ko="#오라클문제" data-en="#OracleProblem"></span>
+    <span class="tag t" data-ko="#탈중앙화" data-en="#Decentralization"></span>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- 여기까지 온 길 -->
+<section class="section">
+  <div class="section-label t" data-ko="01 — 여기까지 온 길" data-en="01 — How we got here"></div>
+  <div class="timeline">
+
+    <div class="tl-item">
+      <div class="tl-dot filled"></div>
+      <div class="tl-date t" data-ko="2025년 11월" data-en="November 2025"></div>
+      <div class="tl-title t" data-ko="노드자본주의 선언 v1.0" data-en="Node Capitalism Manifesto v1.0"></div>
+      <div class="tl-desc t"
+        data-ko="우리는 더 이상 시스템의 사용자가 아닙니다. 우리는 문명의 노드입니다. 개인이 에너지를 생성·저장·거래하는 새로운 경제 운영체제의 철학적 선언."
+        data-en="We are no longer users of the system. We are the nodes of civilization. The philosophical declaration of a new economic OS where individuals generate, store, and trade energy.">
+      </div>
+      <div class="tl-links">
+        <a href="https://github.com/zerozero9198/node-capitalism-manifesto/blob/main/manifesto/Node_Capitalism_Manifesto_v1_KR.pdf" target="_blank" class="tl-btn ko t" data-ko="한국어 PDF" data-en="Korean PDF"></a>
+        <a href="https://github.com/zerozero9198/node-capitalism-manifesto/blob/main/manifesto/Node_Capitalism_Manifesto_v1_EN.pdf" target="_blank" class="tl-btn t" data-ko="English PDF" data-en="English PDF"></a>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot filled"></div>
+      <div class="tl-date t" data-ko="2025년 11월" data-en="November 2025"></div>
+      <div class="tl-title t" data-ko="노드자본주의 백서 v1.0" data-en="Node Capitalism Whitepaper v1.0"></div>
+      <div class="tl-desc t"
+        data-ko="선언의 개념 설계. 노드자본주의의 구조와 원리를 체계적으로 정리한 문서. 비트코인의 수학적 신뢰 + 물리 에너지 = 거짓말할 수 없는 문명."
+        data-en="The conceptual design behind the declaration. Bitcoin's mathematical trust + physical energy = a civilization that cannot lie.">
+      </div>
+      <div class="tl-links">
+        <a href="https://github.com/zerozero9198/node-capitalism-manifesto/blob/main/whitepaper/Node-Capitalism-Whitepaper-v1.0-KR.pdf" target="_blank" class="tl-btn ko t" data-ko="한국어 PDF" data-en="Korean PDF"></a>
+        <a href="https://github.com/zerozero9198/node-capitalism-manifesto/blob/main/whitepaper/Node-Capitalism-Whitepaper-v1.0-EN.pdf" target="_blank" class="tl-btn t" data-ko="English PDF" data-en="English PDF"></a>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot filled"></div>
+      <div class="tl-date t" data-ko="2025년 12월" data-en="December 2025"></div>
+      <div class="tl-title t" data-ko="PoET 오라클 기술 스펙 v1.0" data-en="PoET Oracle Technical Spec v1.0"></div>
+      <div class="tl-desc t"
+        data-ko="거짓말할 수 없는 오라클. 거짓을 말하는 비용이 진실보다 더 많은 에너지를 소비하는 시스템의 첫 번째 기술 명세. 열역학적 진실 검증."
+        data-en="The oracle that cannot lie. The first technical specification of a system where the cost of lying consumes more energy than telling the truth. Thermodynamic truth verification.">
+      </div>
+      <div class="tl-links">
+        <a href="https://github.com/zerozero9198/node-capitalism-manifesto/blob/main/specs/thermodynamic-oracle/Thermodynamic_Truth_Verification_v1.0_KR.pdf" target="_blank" class="tl-btn ko t" data-ko="한국어 PDF" data-en="Korean PDF"></a>
+        <a href="https://github.com/zerozero9198/node-capitalism-manifesto/blob/main/specs/thermodynamic-oracle/Thermodynamic_Truth_Verification_v1.0_EN.pdf" target="_blank" class="tl-btn t" data-ko="English PDF" data-en="English PDF"></a>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot filled"></div>
+      <div class="tl-date t" data-ko="2026년 3월" data-en="March 2026"></div>
+      <div class="tl-title t" data-ko="PoE 오라클 백서 v2.0 + 시뮬레이터" data-en="PoE Oracle Whitepaper v2.0 + Simulator"></div>
+      <div class="tl-desc t"
+        data-ko="PoET 스펙의 심화 버전. 위험 감수 행위, 도구로서의 AI, 자유로운 노드 이동이라는 세 가지 새로운 명제 추가. 브라우저에서 직접 실행되는 네트워크 시뮬레이터 포함."
+        data-en="An advanced version of the PoET spec. Three new propositions: risk-bearing behavior, AI as instrument, free node mobility as final verification. Includes a browser-based network simulator.">
+      </div>
+      <div class="tl-links">
+        <a href="PoE_Whitepaper_v2_KO.docx" target="_blank" class="tl-btn ko t" data-ko="한국어 다운로드" data-en="Korean Download"></a>
+        <a href="PoE_Whitepaper_v2.docx" target="_blank" class="tl-btn t" data-ko="English Download" data-en="English Download"></a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- 지금 작동하는 것들 -->
+<section class="section">
+  <div class="section-label t" data-ko="02 — 지금 작동하는 것들" data-en="02 — What's running now"></div>
+  <div class="tools-grid">
+
+    <div class="tool-card c1">
+      <div class="tool-num">001</div>
+      <div class="tool-status status-live">LIVE</div>
+      <div class="tool-icon">⚡</div>
+      <div class="tool-title t" data-ko="X 에너지 분석기" data-en="X Energy Analyzer"></div>
+      <div class="tool-desc t"
+        data-ko="알고리즘이 준 노출과 사람들이 자발적으로 투입한 에너지를 구분합니다. CSV 파일 하나로 30초 안에 분석됩니다. PoE 논리의 현실 적용 사례."
+        data-en="Separates algorithm-driven impressions from voluntarily invested human energy. One CSV. 30 seconds. A real-world application of PoE logic.">
+      </div>
+      <a href="https://zerozero9198.github.io/poe-x-analyzer/" target="_blank" class="tool-btn btn-green">
+        <span class="t" data-ko="앱 열기" data-en="Open App"></span> →
+      </a>
+    </div>
+
+    <div class="tool-card c2">
+      <div class="tool-num">002</div>
+      <div class="tool-status status-v2">SIMULATOR v2</div>
+      <div class="tool-icon">🔬</div>
+      <div class="tool-title t" data-ko="PoE 네트워크 시뮬레이터" data-en="PoE Network Simulator"></div>
+      <div class="tool-desc t"
+        data-ko="정직 노드·공격 노드·챌린저가 에너지를 걸고 경쟁합니다. 검증 4단계, 챌린지 비용, 결과 리포트. 어떤 조건에서 네트워크가 진실로 수렴하는지 직접 실험하세요."
+        data-en="Honest nodes, attackers, and challengers compete with energy at stake. 4-stage verification, challenge costs, result reports. Experiment with the conditions for truth convergence.">
+      </div>
+      <button onclick="openSim()" class="tool-btn btn-outline">
+        <span class="t" data-ko="시뮬레이터 실행" data-en="Run Simulator"></span> ↗
+      </button>
+    </div>
+
+    <div class="tool-card c3">
+      <div class="tool-num">003</div>
+      <div class="tool-status status-paper">WHITEPAPER v2.0</div>
+      <div class="tool-icon">📄</div>
+      <div class="tool-title t" data-ko="PoE 오라클 백서 v2.0" data-en="PoE Oracle Whitepaper v2.0"></div>
+      <div class="tool-desc t"
+        data-ko="이론적 토대, 5개 레이어 프로토콜 아키텍처, 보안 분석, Python 시뮬레이션 코드를 포함한 전체 문서."
+        data-en="The full document: theoretical foundation, 5-layer protocol architecture, security analysis, and Python simulation code.">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="PoE_Whitepaper_v2_KO.docx" target="_blank" class="tool-btn btn-outline" style="font-size:10px;">한국어 ↓</a>
+        <a href="PoE_Whitepaper_v2.docx" target="_blank" class="tool-btn btn-outline" style="font-size:10px;">English ↓</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- 왜 물리학인가 -->
+<section class="philosophy">
+  <div class="phil-grid">
+    <div>
+      <div class="section-label t" data-ko="03 — 왜 물리학인가" data-en="03 — Why physics"></div>
+      <h2 class="phil-title">WHY<br><span class="accent">PHYSICS</span></h2>
+      <p class="phil-body t"
+        data-ko="오라클 문제는 기술적 도전이 아닙니다. 권력 문제입니다. 진실 검증을 통제하는 자가 그 위에 구축된 전체 가치 레이어를 통제합니다. PoE는 이 권력을 물리학에 위임합니다. 물리학은 매수되지 않습니다."
+        data-en="The oracle problem is not a technical challenge. It is a power problem. Whoever controls truth verification controls the entire value layer built upon it. PoE delegates this power to physics. Physics cannot be bribed.">
+      </p>
+    </div>
+    <div>
+      <div class="phil-item">
+        <div class="phil-num">01</div>
+        <div class="phil-text t" data-ko="<strong>에너지는 불가역적입니다.</strong> 거짓 주장에 에너지를 소비한 노드는 그 에너지를 되돌릴 수 없습니다. 기만이 열역학적으로 비싸집니다." data-en="<strong>Energy is irreversible.</strong> A node that expends energy on a false claim cannot reclaim it. Deception becomes thermodynamically expensive."></div>
+      </div>
+      <div class="phil-item">
+        <div class="phil-num">02</div>
+        <div class="phil-text t" data-ko="<strong>증명은 에너지의 양이 아닙니다.</strong> 위험 감수 행위가 핵심입니다. 비트코인 작업증명이 같은 원리로 작동합니다." data-en="<strong>The proof is not the quantity of energy.</strong> It is the act of bearing the risk of loss. Bitcoin's Proof of Work operates on the same principle."></div>
+      </div>
+      <div class="phil-item">
+        <div class="phil-num">03</div>
+        <div class="phil-text t" data-ko="<strong>AI는 판사가 아닌 도구입니다.</strong> 온도계는 덥다고 판결하지 않습니다. Grok은 분포를 읽을 뿐, 진실을 결정하지 않습니다." data-en="<strong>AI is an instrument, not a judge.</strong> A thermometer does not rule on whether it is hot. Grok reads the distribution — it does not determine truth."></div>
+      </div>
+      <div class="phil-item">
+        <div class="phil-num">04</div>
+        <div class="phil-text t" data-ko="<strong>노드의 자유로운 이동이 최종 검증입니다.</strong> 잘못 작동하는 네트워크는 노드를 잃습니다. 비트코인 하드포크와 같은 원리입니다." data-en="<strong>Free node mobility is the final verification.</strong> A network that fails its nodes loses them. The same mechanism as a Bitcoin hard fork."></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- 핵심 선언 -->
+<section class="thesis">
+  <div class="section-label t" data-ko="04 — 핵심 선언" data-en="04 — Core claim"></div>
+  <div class="thesis-box">
+    <div class="thesis-label t" data-ko="// 탈중앙화의 미완성" data-en="// The unfinished business of decentralization"></div>
+    <p class="thesis-text t"
+      data-ko="오라클 문제 해결은 기술적 이정표가 아닙니다. 그것은 <em>탈중앙화의 완성</em>입니다. 사회가 현실을 인증하는 중앙 권력 없이 작동하기 위해 필요한 마지막 퍼즐 조각입니다. 중앙화된 진실 레이어 위에서 작동하는 탈중앙화 금융 시스템은 진정으로 탈중앙화된 것이 아닙니다."
+      data-en="Solving the oracle problem is not a technical milestone. It is <em>the completion of decentralization</em> — the last piece required before a society can operate without a central authority certifying what is real. A decentralized financial system operating on a centralized truth layer is not truly decentralized.">
+    </p>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<footer>
+  <div class="footer-left">
+    <div style="color:var(--green);font-weight:500;margin-bottom:4px;">ZeroZero — Node Capitalism Series</div>
+    <div>Manifesto v1.0 (2025.11) → PoET Spec v1.0 (2025.12) → PoE v2.0 (2026.03)</div>
+    <div style="margin-top:4px;" class="t" data-ko="계속 구축 중입니다." data-en="Still building."></div>
+  </div>
+  <div class="footer-right">
+    <span class="footer-tag">#ProofOfEnergy</span>
+    <span class="footer-tag">#NodeCapitalism</span>
+    <span class="footer-tag">#OracleProblem</span>
+  </div>
+</footer>
+
+<!-- Simulator overlay -->
+<div class="sim-overlay" id="simOverlay" onclick="handleOverlayClick(event)">
+  <div class="sim-modal">
+    <div class="sim-modal-header">
+      <div class="sim-modal-title">PoE NETWORK SIMULATOR v2.0</div>
+      <button class="sim-close" onclick="closeSim()">✕ <span class="t" data-ko="닫기" data-en="Close"></span></button>
+    </div>
+    <iframe class="sim-frame" id="simFrame" src="" title="PoE Simulator"></iframe>
+  </div>
+</div>
+
+<script>
+let currentLang = 'ko';
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach((btn, i) => btn.classList.toggle('active', ['ko','en'][i] === lang));
+  document.querySelectorAll('.t[data-' + lang + ']').forEach(el => el.innerHTML = el.getAttribute('data-' + lang));
+  document.documentElement.lang = lang;
+}
+setLang('ko');
+
+function openSim() {
+  document.getElementById('simFrame').src = 'poe_simulator_v2.html';
+  document.getElementById('simOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSim() {
+  document.getElementById('simOverlay').classList.remove('open');
+  document.getElementById('simFrame').src = '';
+  document.body.style.overflow = '';
+}
+function handleOverlayClick(e) { if (e.target === document.getElementById('simOverlay')) closeSim(); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSim(); });
+</script>
+</body>
+</html>
